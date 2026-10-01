@@ -1,0 +1,156 @@
+# =============================================================================
+# xauusd-quant - wavelet / time-frequency research (Prompt #6)
+# =============================================================================
+# Question: after removing the local trend (the rolling regression) and first-
+# order mean reversion (the OU fit), is there *time-localised* multiscale
+# structure that the Fourier study (Prompt #5) could not see - and does it
+# carry information beyond regression, OU, volatility and FFT features?
+#
+# Two strictly separated kinds of output:
+#   * causal features  - one-sided (causal) MODWT on the trailing window only;
+#                        the only thing ever written to data/features/wavelet;
+#   * offline analysis - continuous-transform scalograms and ridges over whole
+#                        slices, labelled NON-CAUSAL - VISUALIZATION ONLY.
+#
+# Nothing here was chosen by any outcome, return or backtest. The windows,
+# scale groups and thresholds are round numbers fixed before the study ran.
+# =============================================================================
+
+schema_version: "1.0.0"
+
+timeframes: [1m, 5m, 15m, 30m, 1h]   # 1m needs --allow-heavy (see grid)
+regression_window: 128                 # the residual of Prompt #3's N = 128 regression
+ou_window: 256                         # the innovation of Prompt #4's M = 256 OU fit
+input_series: [regression_residual, ou_innovation, log_return]
+results_path: ${XAUUSD_WAVELET_RESULTS:-results/wavelet_research}
+
+analysis:
+  cwt_enabled: true                    # offline scalograms, ridges, positive controls
+  dwt_enabled: true                    # causal MODWT features
+
+cwt:
+  # The analytic (complex) Morlet: its |W|^2 is a smooth local power. The real
+  # Morlet ('morl') gives a power that oscillates with the carrier, so it is
+  # not used for scalograms. 'mexh' (Mexican hat) is the comparison wavelet.
+  wavelet: cmor1.5-1.0
+  compare_wavelet: mexh
+  scales: {mode: logarithmic, min: 2, max: 256, count: 48}
+  ridge_power_ratio: 3.0               # ridge point: power >= 3 x that scale's slice median
+  slice_bars: 2048                     # bars per offline scalogram slice
+
+dwt:
+  wavelet: db4                         # Daubechies 4 (8 taps), orthogonal
+  compare_wavelets: [haar, sym4]       # sensitivity only, representative window
+  levels: auto                         # deepest level whose causal filter fits the window
+
+causal_features:
+  enabled: true
+  method: causal_modwt                 # one-sided filters: no right-boundary padding
+  rolling_windows: [128, 256, 512, 1024]
+  representative_window: 512           # the window whose per-bar features are stored
+  min_level_coefficients: 16           # boundary-free coefficients a level needs in-window
+  missing_bar_tolerance: 0.05          # as Prompt #5: unscheduled gaps <= 5 % of slots
+  fast_slow_boundary_seconds: 14400    # fast < 4 h <= slow (by band centre period)
+  band_edges_seconds: [3600, 28800]    # high < 1 h <= mid < 8 h <= low
+  drift_lag_fraction: 0.25             # scale drift over N/4 bars
+  burst_z_threshold: 3.0               # a burst: local log energy > 3 trailing std above mean
+  burst_min_history: 32                # trailing values a band needs for a burst Z-score
+  zero_energy_tolerance: 1.0e-30
+
+energy:
+  enabled: true
+
+entropy:
+  enabled: true
+  normalise: true                      # divide by ln(number of bands)
+
+boundary:                              # Step 60: right-edge padding study (synthetic)
+  padding_modes: [zero, symmetric, reflect, constant, periodization]
+  trials: 200
+  seed: 20260927
+
+persistence:
+  lags_in_windows: [0.25, 0.5, 1, 2]   # persistence beyond overlap is read at >= 1 window
+  lags_in_bars: [1]
+  band_tolerance: 1                    # "similar scale" = same or adjacent band
+
+outcomes:
+  horizons: [1, 5, 10, 20]
+  residual_extremes: [1.0, 2.0, 3.0]   # |Z_residual| thresholds
+  ou_extreme: 2.0                      # |Z_OU| threshold
+  buckets: 4                           # quartiles of the wavelet state
+
+ic:
+  features: [wavelet_entropy, wavelet_dominant_excess, wavelet_top3_scale_share,
+             wavelet_log_dominant_period, wavelet_active_scales, wavelet_fast_slow_log_ratio,
+             wavelet_fast_slow_change, wavelet_log_centroid_period, wavelet_scale_drift,
+             wavelet_log_run_length, wavelet_energy_log_change, wavelet_burst_z_max,
+             wavelet_local_entropy, wavelet_local_fast_slow_log_ratio]
+  targets: [future_return, future_residual_change, future_abs_residual_reduction,
+            future_volatility, future_innovation_magnitude]
+  horizons: [1, 2, 3, 5, 10, 20]
+  max_rows: 1000000                    # evenly spaced sample (estimates)
+  max_rows_control: 300000
+  controls: [random_walk, shuffled_returns, block_bootstrap]
+
+incremental:                           # Steps 31-32: nested models A-D, chronological
+  enabled: true
+  targets: [future_return, future_residual_change, future_abs_residual_reduction,
+            future_volatility, future_innovation_magnitude]
+  binary_targets: [residual_shrinks, ou_zscore_shrinks]
+  horizons: [1, 5, 20]
+  test_blocks: [[2011, 2014], [2015, 2018], [2019, 2022], [2023, 2026]]
+  max_rows: 400000
+  ridge: 1.0                           # fixed a priori, standardised features
+  binary_extreme: 2.0                  # binary targets are read where |Z| > 2
+  min_train_rows: 2000
+  controls: [random_walk, block_bootstrap]
+
+null_controls:
+  white_noise: true
+  random_walk: true                    # Gaussian walk -> same regression -> OU -> wavelet
+  shuffled_returns: true
+  block_bootstrap: true
+  block_size: 256                      # the Prompt #5 draw (same seed stream)
+  block_sizes: [64, 256, 1024]         # sensitivity, never searched
+  seed: 20260925                       # the Prompt #5 seed: identical null series
+
+conditioning:
+  volatility_buckets: 4
+  trend_buckets: 5
+  ou_speed_buckets: 3
+  by_hour: true
+  by_session: true
+  min_samples_warning: 200
+
+stability:
+  eras: 3
+  change_quantiles: [0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99]
+
+features_output:
+  write: representative                # representative | all | none
+  path: ${XAUUSD_WAVELET_FEATURES:-data/features/wavelet}
+  float32: true
+
+plots:
+  enabled: true
+  format: png
+  dpi: 130
+  figsize: [11, 6]
+  sample_bars: 3000
+  max_series_points: 20000
+
+offline:
+  slices_per_timeframe: 5              # per-era median-volatility months + extremes
+  null_slices: 3
+
+output:
+  write_parquet: true
+  write_csv: true
+
+grid:
+  max_bars_without_override: 3000000   # 1m (7.9M bars) needs --allow-heavy
+
+ledger:
+  enabled: true
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}

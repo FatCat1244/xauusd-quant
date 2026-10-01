@@ -1,0 +1,233 @@
+# ===========================================================================
+# xauusd-quant - statistical research configuration
+#
+# Everything here describes HOW the data is characterised, never what to trade.
+# `config/data.yaml` still owns the dataset itself (paths, schema, timezone);
+# this file only governs the research layer built on top of it.
+#
+# Relative paths resolve against the repository root. ${VAR} / ${VAR:-default}
+# expansion works here exactly as it does in data.yaml.
+# ===========================================================================
+
+schema_version: "1.0.0"
+
+# Where research tables, summaries and plots are written.
+results_path: "${XAUUSD_RESULTS_PATH:-results/statistical_research}"
+
+# Timeframes to analyse. Each must already exist under `bars_path`.
+timeframes: ["1m", "5m", "15m", "30m", "1h"]
+
+# ---------------------------------------------------------------------------
+# Returns
+#
+# MID is the research default and deliberately so: bid or ask alone carries the
+# spread's own dynamics into every statistic. The eventual backtester will use
+# bid/ask for fills - that is a separate concern from characterising the price
+# process.
+# ---------------------------------------------------------------------------
+returns:
+  price_column: close          # close | open | mid_of_bar
+  price_source: mid            # mid | bid | ask  (mid unless you have a reason)
+  types: ["log", "simple"]     # both are computed; log is used for analysis
+  primary: log
+  # Multi-period (overlapping) horizons, measured backward from t.
+  multi_period_horizons: [5, 10, 20]
+  # Drop the first observation of each session break rather than letting a
+  # return straddle a market closure. See research.returns for what this means.
+  drop_session_gap_returns: true
+  # A gap longer than this many bar-intervals is treated as a session break.
+  session_gap_bar_multiple: 1.5
+
+# ---------------------------------------------------------------------------
+# Distribution analysis
+# ---------------------------------------------------------------------------
+distribution:
+  quantiles: [0.001, 0.005, 0.01, 0.025, 0.05, 0.25, 0.50, 0.75,
+              0.95, 0.975, 0.99, 0.995, 0.999]
+  # Compare the empirical tail against a Gaussian fitted to the same mean/sd.
+  gaussian_reference: true
+  tail_sigma_levels: [2, 3, 4, 5, 6]
+  histogram_bins: 200
+
+normality:
+  jarque_bera: true
+  dagostino_k2: true
+  # Above this many observations even trivial departures from normality give
+  # p ~ 0, so every report carries the warning rather than leaving the reader
+  # to work it out.
+  large_sample_warning_threshold: 100000
+
+# ---------------------------------------------------------------------------
+# Autocorrelation
+# ---------------------------------------------------------------------------
+autocorrelation:
+  max_lag: 100
+  # ACF is computed for the raw series and for |r| and r^2, because volatility
+  # clustering shows up far more clearly in the latter two.
+  series: ["returns", "abs_returns", "squared_returns"]
+  confidence_level: 0.95
+  ljung_box_lags: [5, 10, 20, 50]
+
+# ---------------------------------------------------------------------------
+# Volatility
+# ---------------------------------------------------------------------------
+volatility:
+  rolling_windows: [20, 50, 100, 250]
+  ewma_lambda: 0.94            # RiskMetrics convention; configurable on purpose
+  realized_vol_window: 20
+  regime_quantiles: [0.25, 0.50, 0.75]   # quartile buckets for regime summaries
+
+  # Annualisation is OFF by default. XAUUSD is not an equity market: it trades
+  # ~23 h/day, 5 days/week, so 252 x 6.5h is simply wrong here. Set `enabled`
+  # only once you have decided what a "year" means for this instrument, and
+  # state the assumption in the report.
+  annualization:
+    enabled: false
+    trading_days_per_year: 260
+    hours_per_trading_day: 23.0
+    # bars_per_year is derived from the timeframe when this is null.
+    bars_per_year: null
+
+# ---------------------------------------------------------------------------
+# Rolling statistics (all strictly backward-looking)
+# ---------------------------------------------------------------------------
+rolling:
+  windows: [20, 50, 100, 250]
+  autocorr_lags: [1, 2, 5]
+  min_periods_fraction: 0.9    # a window must be this full to emit a value
+  # Whether the value at t may use the bar at t. True = [t-N+1, t] inclusive,
+  # which is causal and correct for research. The reports record this.
+  include_current_bar: true
+
+# ---------------------------------------------------------------------------
+# Stationarity
+# ---------------------------------------------------------------------------
+stationarity:
+  adf_enabled: true
+  kpss_enabled: true
+  series: ["price", "log_price", "log_returns"]
+  adf_regression: "c"          # c | ct | ctt | n
+  adf_autolag: "AIC"
+  kpss_regression: "c"         # c | ct
+  kpss_nlags: "auto"
+  # Running a test on tens of millions of points is pointless and slow; these
+  # tests converge long before that. A deterministic, evenly-spaced subsample
+  # is used above this size and the report says so.
+  max_observations: 500000
+  subsample_seed: 20260921
+
+  segmented:
+    enabled: true
+    by: "year"                 # year | quarter
+    min_observations: 5000
+    rolling:
+      enabled: false           # opt-in; see max_windows before turning on
+      window_bars: 20000
+      step_bars: 10000
+      max_windows: 200
+
+# ---------------------------------------------------------------------------
+# Conditional / extreme-move analysis
+#
+# Forward returns here are OUTCOMES only. They are never fed back into a
+# feature, and the code keeps the two apart explicitly.
+# ---------------------------------------------------------------------------
+conditional:
+  # Quantile thresholds of the CURRENT return that define each bucket.
+  lower_quantiles: [0.001, 0.005, 0.01, 0.025]
+  upper_quantiles: [0.975, 0.99, 0.995, 0.999]
+  forward_horizons: [1, 2, 3, 5, 10, 20]
+  min_samples_warning: 200     # below this, results are flagged as thin
+  bootstrap:
+    enabled: true
+    iterations: 1000
+    confidence_level: 0.95
+    seed: 20260921
+    max_samples: 200000        # bootstrap is skipped above this, and says so
+
+# ---------------------------------------------------------------------------
+# Intraday, weekday and session behaviour
+#
+# All grouping uses the timestamp basis named below, which is broker-local time
+# (America/New_York + 7 h) unless data.yaml says otherwise. Every report states
+# the basis explicitly rather than leaving the reader to guess.
+# ---------------------------------------------------------------------------
+intraday:
+  enabled: true
+  time_basis: timestamp        # timestamp (broker-local) | timestamp_utc
+  extreme_quantile: 0.99       # |r| above this quantile counts as "extreme"
+  weekday_enabled: true
+
+  sessions:
+    enabled: true
+    # Boundaries are [start, end) on the time_basis clock, inclusive of start.
+    # These are approximations of the liquidity centres, NOT official hours,
+    # and they are NOT daylight-saving adjusted - the broker clock already
+    # tracks US DST, but London and Tokyo do not switch on the same dates, so
+    # the edges drift by an hour for a few weeks each year. Reports say this.
+    # ORDER MATTERS: windows may overlap and the FIRST match wins, so the
+    # narrowest window must be listed first. london_ny_overlap therefore comes
+    # before london and new_york, which would otherwise swallow it - the
+    # overlap is the most liquid part of the day and deserves its own bucket
+    # rather than being averaged into its two parents.
+    #
+    # As written these five windows tile the whole day exactly once:
+    #   off_hours 23:00-02:00, asia 02:00-10:00, london 10:00-15:30,
+    #   london_ny_overlap 15:30-18:30, new_york 18:30-23:00
+    definitions:
+      london_ny_overlap: {start: "15:30", end: "18:30"}
+      asia:            {start: "02:00", end: "10:00"}
+      london:          {start: "10:00", end: "18:30"}
+      new_york:        {start: "15:30", end: "23:00"}
+      off_hours:       {start: "23:00", end: "02:00"}
+
+# ---------------------------------------------------------------------------
+# Spread
+# ---------------------------------------------------------------------------
+spread:
+  enabled: true
+  quantiles: [0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99, 0.999]
+  # A bar's mean spread above this quantile counts as "unusually wide".
+  wide_quantile: 0.99
+  correlate_with: ["volatility", "abs_return", "tick_count"]
+
+# ---------------------------------------------------------------------------
+# Tick activity
+#
+# `tick_count` is the number of quote updates in a bar. It is NOT traded
+# volume, and `volume` in this dataset is broker liquidity units, not contracts.
+# ---------------------------------------------------------------------------
+activity:
+  enabled: true
+  low_activity_quantile: 0.01
+  quantiles: [0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99]
+
+# ---------------------------------------------------------------------------
+# Structural stability through time
+# ---------------------------------------------------------------------------
+stability:
+  enabled: true
+  by: "year"                   # year | quarter
+  min_observations: 1000
+  metrics: ["mean", "std", "skew", "excess_kurtosis", "acf1",
+            "extreme_frequency", "mean_spread", "mean_tick_count"]
+
+# ---------------------------------------------------------------------------
+# Plots
+# ---------------------------------------------------------------------------
+plots:
+  enabled: true
+  format: png
+  dpi: 130
+  figsize: [10, 6]
+  style: "seaborn-v0_8-whitegrid"
+  max_scatter_points: 50000    # scatter plots subsample above this
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+output:
+  write_parquet: true
+  write_csv: true
+  write_json: true
+  float_precision: 10

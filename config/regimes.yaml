@@ -1,0 +1,243 @@
+# =============================================================================
+# xauusd-quant - unsupervised market-regime discovery (Prompt #7)
+# =============================================================================
+# Question: does XAUUSD repeatedly enter statistically distinct states that can
+# be identified from information available at the time - and are they more
+# than volatility buckets and the time of day?
+#
+# Two strictly separated kinds of output:
+#   * OFFLINE / NON-CAUSAL RESEARCH ONLY - full-sample fits, smoothed HMM
+#     probabilities, Viterbi paths. Results tables only, never features.
+#   * causal / live-safe - walk-forward refits (past data only, frozen scaler
+#     and model between refits) and the forward filter P(S_t | X_<=t). The only
+#     thing ever written to data/features/regime.
+#
+# Nothing here was chosen by any outcome, return, PnL or backtest. The number
+# of states is never picked by trading performance; K = 2..6 is reported with
+# every model criterion side by side. Window lengths and thresholds are round
+# numbers fixed before the study ran.
+# =============================================================================
+
+schema_version: "1.0.0"
+
+timeframes: [5m, 15m, 30m, 1h]          # 1m (7.9M bars) needs --allow-heavy
+results_path: ${XAUUSD_REGIME_RESULTS:-results/regime_research}
+seed: 20261001
+
+# -----------------------------------------------------------------------------
+# Inputs: which earlier-layer series the feature space is built from
+# -----------------------------------------------------------------------------
+inputs:
+  regression_window: 128                # the Prompt #3 N = 128 regression (residual, slope, R^2)
+  ou_window: 256                        # the Prompt #4 M = 256 rolling OU fit of that residual
+  fft_series: log_return                # the stored Prompt #5 feature set it reads ...
+  fft_window: 256                       # ... at the representative FFT window
+  wavelet_series: log_return            # the stored Prompt #6 feature set it reads ...
+  wavelet_window: 512                   # ... at the representative rolling window
+  rv_window: 20                         # bars in ln realised volatility
+  return_horizon: 20                    # bars in the volatility-standardised return
+  abs_return_acf_window: 256            # bars in the rolling lag-1 ACF of |r|
+  percentile_days: 20                   # trailing trading days for percentile features
+  trading_hours_per_day: 23             # bars per day = 23 h / bar length
+
+# -----------------------------------------------------------------------------
+# Feature sets. Each feature's definition, group and reason for inclusion (or
+# exclusion) are in regimes/dataset.py (FEATURE_SPECS, EXCLUDED_FEATURES) and
+# are written to every study as feature_manifest.json.
+# -----------------------------------------------------------------------------
+feature_groups:
+  returns: [return_z_20]
+  volatility: [log_rv_20, rv_percentile, abs_return_acf1]
+  regression: [slope_over_volatility, r_squared]
+  ou: [log_ou_half_life]
+  spectral: [spectral_entropy, fft_high_low_log_ratio]
+  wavelet: [wavelet_entropy, wavelet_fast_slow_log_ratio]
+  spread_activity: [spread_percentile, activity_percentile]
+
+feature_sets:
+  core: [return_z_20, log_rv_20, rv_percentile, abs_return_acf1, slope_over_volatility,
+         r_squared, log_ou_half_life, spectral_entropy, fft_high_low_log_ratio,
+         wavelet_entropy, wavelet_fast_slow_log_ratio, spread_percentile, activity_percentile]
+  volatility_only: [log_rv_20, rv_percentile]
+primary_feature_set: core
+
+redundancy:
+  duplicate_abs_spearman: 0.98          # two features above this may not both enter a model
+  flag_abs_spearman: 0.90               # reported beside the manifest
+  sample_rows: 200000                   # evenly spaced rows (estimates)
+
+# -----------------------------------------------------------------------------
+# Preprocessing (Steps 6-8)
+# -----------------------------------------------------------------------------
+preprocessing:
+  scaling: robust                       # robust: (x - median) / IQR | standard: z-score
+  compare_scaling: [robust, standard]   # Step 7 comparison (stability, outliers, numerics)
+  clip: 10.0                            # |scaled value| cap (null = none); clipped shares reported
+  missing_policy: marginalize           # marginalize | exclude | median_fill
+  min_feature_coverage: 0.75            # share of features a bar needs to be scored at all
+  required_features: [log_rv_20]        # a bar without these is never scored
+
+# -----------------------------------------------------------------------------
+# Models (Steps 10-18). A limited family on purpose: no Bayesian or deep models.
+# -----------------------------------------------------------------------------
+models:
+  kmeans:
+    enabled: true
+    clusters: [2, 3, 4, 5, 6]
+    n_init: 5
+    max_iter: 300
+    tol: 1.0e-6
+  gmm:
+    enabled: true
+    components: [2, 3, 4, 5, 6]
+    covariance_types: [full, diag]      # tied is supported, not run by default
+    n_init: 3
+    max_iter: 300
+    tol: 1.0e-5                         # nats per observation
+    reg_covar: 1.0e-4                   # added to every covariance diagonal (scaled units)
+  hmm:
+    enabled: true
+    states: [2, 3, 4, 5, 6]
+    covariance_type: full
+    n_init: 3
+    max_iter: 200
+    tol: 1.0e-5
+    reg_covar: 1.0e-4
+    transition_pseudocount: 1.0         # Dirichlet count per transition (no exact zeros)
+    block_length: 512                   # forward/backward block size (numerics only)
+
+# -----------------------------------------------------------------------------
+# Offline (non-causal) exploratory fits: full sample, labelled as such
+# -----------------------------------------------------------------------------
+offline:
+  enabled: true
+  silhouette_sample: 20000              # silhouette on an evenly spaced sample (estimate)
+  profile_quantiles: [0.1, 0.25, 0.5, 0.75, 0.9]
+  timeline_slices: 4                    # plotted periods: per-era median-volatility months
+
+# -----------------------------------------------------------------------------
+# Causal walk-forward inference (Steps 24-31)
+# -----------------------------------------------------------------------------
+causal:
+  schemes: [expanding, rolling]         # 2003 -> t, or the last rolling_training_years
+  primary_scheme: expanding
+  rolling_training_years: 5
+  refit_frequencies: [quarterly, monthly]
+  primary_refit: quarterly
+  first_inference: "2008-01-01"         # first out-of-sample period
+  min_training_observations: 20000      # complete-case bars a refit needs
+  burn_in_bars: 2000                    # past bars the frozen filter runs over before a period
+  warm_start: true                      # start EM from the previous period's model ...
+  fresh_inits_per_refit: 1              # ... plus this many fresh initialisations
+  fresh_init_every: 8                   # ... at every 8th refit (best training LL wins)
+  refit_max_iter: 100
+  refit_tol: 1.0e-4                     # nats per observation, warm-started refits
+  monthly_states: [3]                   # monthly refits run for these K only (cost)
+  secondary_scheme_models: [hmm]        # non-primary schemes (rolling) run for these models
+
+# -----------------------------------------------------------------------------
+# Baselines and controls (Steps 9, 43-48)
+# -----------------------------------------------------------------------------
+baselines:
+  volatility_feature: log_rv_20         # the volatility-bucket baseline's variable
+  random_label_seed: 20261002           # random states with matched frequencies/persistence
+
+nulls:
+  enabled: true
+  states: [2, 3, 4, 5, 6]
+  row_shuffle: true                     # Step 47: feature rows in random order
+  row_block_days: [1, 5]                # Step 48: circular blocks of feature rows
+  pipeline: [random_walk, shuffled_returns, block_bootstrap_1024]
+  seed: 20260925                        # the Prompt #5/#6 seed: identical null price series
+  max_rows: 400000                      # the most recent bars (one contiguous span) per null fit
+  # REG-H-001 / -007 increments are also measured on the random-walk and 1024-block
+  # pipeline nulls (their own walk-forward model) when the real increment passes its
+  # fold and random-state tests. Elsewhere those verdicts read "untested_against_pipeline_nulls".
+  increment_models: [hmm]
+  increment_states: [3]                 # 1h ran all K (2..6); 30m-5m run K = 3 (cost)
+  run_states: [3]                       # persistence nulls actually run: 1h and 30m ran
+                                        # K = 2..6; 15m and 5m run K = 3 (~3 min per fit)
+
+synthetic:
+  bars: 60000
+  seed: 20261003
+
+# -----------------------------------------------------------------------------
+# Outcomes and information (Steps 32-37, 58-63)
+# -----------------------------------------------------------------------------
+outcomes:
+  horizons: [1, 2, 3, 5, 10, 20]
+  residual_extreme: 2.0                 # |Z| threshold for the mean-reversion tables
+  ou_extreme: 2.0
+  volatility_buckets: 3                 # the baseline's bucket count in outcome tables
+  min_observations: 200
+
+incremental:
+  enabled: true
+  targets: [future_volatility, future_abs_residual_reduction, future_return,
+            future_innovation_magnitude]
+  binary_targets: [residual_shrinks]
+  horizons: [1, 5, 20]
+  test_blocks: [[2011, 2014], [2015, 2018], [2019, 2022], [2023, 2026]]
+  max_rows: 400000                      # evenly spaced rows (estimates)
+  ridge: 1.0                            # fixed a priori, standardised features
+  binary_extreme: 2.0
+  min_train_rows: 2000
+  volatility_windows: [5, 20, 64, 256, 1024]   # model A's multi-horizon volatility
+  hours: true                           # model A carries hour-of-day indicators
+
+calibration:
+  bins: 10
+
+stability:
+  eras: 3
+  change_quantiles: [0.05, 0.25, 0.5, 0.75, 0.95]
+
+changepoints:
+  enabled: true
+  series: [log_rv_20]                   # daily medians of these features
+  penalty_multiplier: 1.0               # x BIC penalty (2 ln n per parameter pair)
+  min_segment_days: 20
+
+cross_timeframe:
+  pairs: [[5m, 1h], [15m, 1h], [5m, 15m], [30m, 1h]]
+
+diagnostics:
+  min_state_fraction: 0.01              # a state below this share of bars is "tiny"
+  max_state_fraction: 0.90              # a state above this share is "dominant"
+  max_condition_number: 1.0e+8          # covariance collapse
+  duplicate_bhattacharyya: 0.05         # two states this close are near-duplicates
+  min_expected_duration: 2.0            # bars; below this a state "flickers"
+  max_expected_duration: 100000.0       # bars; above this a state is "absorbing"
+
+# -----------------------------------------------------------------------------
+# Storage
+# -----------------------------------------------------------------------------
+inputs_cache:
+  path: ${XAUUSD_REGIME_INPUTS:-data/features/regime_inputs}
+
+features_output:
+  path: ${XAUUSD_REGIME_FEATURES:-data/features/regime}
+  float32: true
+
+model_store:
+  path: ${XAUUSD_REGIME_MODELS:-data/regime_models}
+
+plots:
+  enabled: true
+  format: png
+  dpi: 130
+  figsize: [11, 6]
+  timeline_bars: 1500
+  max_series_points: 20000
+
+output:
+  write_parquet: true
+  write_csv: true
+
+grid:
+  max_bars_without_override: 3000000    # 1m needs --allow-heavy
+
+ledger:
+  enabled: true
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}

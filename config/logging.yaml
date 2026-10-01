@@ -1,0 +1,52 @@
+# ===========================================================================
+# xauusd-quant - logging configuration (logging.config.dictConfig format)
+#
+# Policy: the pipeline logs PROGRESS and AGGREGATES, never individual ticks.
+# A full conversion of the ~34 GB dataset should produce on the order of a few
+# hundred log lines, not millions.
+# ===========================================================================
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  console:
+    format: "%(message)s"
+    datefmt: "%H:%M:%S"
+  detailed:
+    format: "%(asctime)s | %(levelname)-8s | %(name)-38s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+handlers:
+  console:
+    class: rich.logging.RichHandler
+    level: INFO
+    formatter: console
+    rich_tracebacks: true
+    show_path: false
+    markup: false
+    log_time_format: "[%H:%M:%S]"
+
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/xauusd-quant.log
+    maxBytes: 20971520      # 20 MiB
+    backupCount: 5
+    encoding: utf-8
+
+loggers:
+  xauusd_quant:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+
+  # Third-party libraries are noisy at DEBUG; keep them at WARNING.
+  polars:
+    level: WARNING
+  duckdb:
+    level: WARNING
+
+root:
+  level: WARNING
+  handlers: [console]

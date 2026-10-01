@@ -1,0 +1,227 @@
+# =============================================================================
+# xauusd-quant - model ensembles, meta-models and predictive diversification
+# (Prompt #11)
+# =============================================================================
+# Does combining genuinely distinct models give predictions that are more stable,
+# better calibrated, less fragile and more informative out of sample than one
+# model? Prediction research only: an ensemble outputs a probability or an
+# expected value (and uncertainty proxies) - never BUY / SELL, a threshold, a
+# size or a PnL, and nothing here is weighted or chosen by trading performance.
+#
+# Inputs are the Prompt #10 walk-forward out-of-sample predictions
+# (results/ml_research/<tf>/predictions/<target>_h<h>.parquet): every row was
+# predicted by a model fitted before its block. The ensemble research is itself
+# a walk-forward over those blocks ("meta walk-forward"): anything fitted -
+# weights, stacking meta-models, subset choices, calibrators, conditional
+# weights - is fitted on the out-of-sample rows of EARLIER blocks only (purged by
+# horizon + embargo at the boundary) and scored on the next block.
+#
+# Every number below was fixed on 2026-10-01 before any ensemble result existed.
+# The reserved period (2022-01-01 ->) was already evaluated once by Prompt #10
+# (37 single models, 2026-10-01 08:30); an ensemble final test is a SECOND look
+# at it and is labelled so in every output.
+# =============================================================================
+
+schema_version: "1.0.0"
+random_seed: 20261011
+timeframes: [5m, 15m]
+primary_timeframe: 5m
+
+# One ensemble per target x horizon x timeframe - never across targets or
+# horizons (Step 19). These are the Prompt #10 tree-comparison pairs, the ones
+# with every model family's out-of-sample predictions.
+pairs:
+  - [mean_reversion, 5]
+  - [mean_reversion_half, 5]
+  - [residual_reduction, 5]
+  - [future_return, 1]
+  - [direction_up_cost, 5]
+  - [future_volatility, 5]
+  - [future_abs_move, 5]
+
+prediction_inputs:
+  # classification inputs are the Platt probabilities, fitted on each fold's
+  # inner slice (never on scored rows); regression inputs are the raw expected
+  # values on the fitted scale
+  calibrated_only_for_classification: true
+
+# -----------------------------------------------------------------------------
+# Step 2 - eligibility gate, on the Prompt #10 development evidence (five blocks
+# 2011-2021). Statuses, in order of precedence: leakage_failed, deprecated,
+# null_failed, weak, unstable, calibration_failed, eligible.
+# -----------------------------------------------------------------------------
+eligibility:
+  min_folds_beating_baseline: 4      # weak: skill vs the constant in fewer blocks (or mean <= 0)
+  min_block_ratio: 0.5               # unstable: worst block's primary metric below half the mean
+  max_mean_ece: 0.05                 # calibration_failed (Platt probabilities)
+  min_mean_brier_skill: 0.0          # calibration_failed when not better than the constant
+  null_min_wins: 4                   # null_failed: real - null <= 0 on average or in > 1 block
+  # registered nulls: shifted training labels (focus pairs) and the random-walk
+  # pipeline (reversion targets); a family without its own null units reads the
+  # null of its class (trees -> LightGBM, linear -> the reference linear model)
+  # on the same feature set. The post-hoc sign-flip pipeline null is reported
+  # beside it, never used to gate (as in Prompt #10).
+  registered_nulls: [shift, pipeline-random_walk]
+  reported_nulls: [pipeline-sign_flip]
+  # classification: skill beyond the constant recalibrated on the inner slice
+  # (the drifting base rate of the one-spread labels) must be positive in at
+  # least min_folds_beating_baseline blocks
+  beyond_base_rate: true
+
+universe:
+  # near-duplicates (pooled development prediction correlation at or above this)
+  # keep the simpler, then the better model; Step 18: no dozens of near-copies
+  max_prediction_correlation: 0.995
+  minimum_model_count: 2
+  maximum_model_count: 8             # the best by development mean beyond that
+
+# -----------------------------------------------------------------------------
+# Meta walk-forward (Steps 5, 21-24): blocks are the Prompt #10 validation blocks;
+# block k is scored by methods fitted on blocks < k. Zero-based indices.
+# -----------------------------------------------------------------------------
+meta_walk_forward:
+  evaluation_blocks: [1, 2, 3, 4]    # 2013-14, 2015-17, 2018-19, 2020-21
+  embargo_bars: 12                   # history rows end h + embargo bars before the block
+  recent_block: 4                    # 2020-2021: "recent development" (Step 41)
+
+methods:
+  simple_average: true
+  median: true
+  performance_weighted: true
+  diversity_weighted: true
+  stacking: true
+  meta_model: true                   # stacking with limited context meta-features (Step 26)
+  regime_conditioned: true
+  volatility_conditioned: true
+  dynamic: true
+
+# Steps 12-13: w_i proportional to max(Q_i, 0), Q = skill against the constant on
+# the fitted scale (log loss / MSE) over the history rows; then
+# w' = (1 - shrink) w + shrink / M. Equal weights when no model has Q > 0.
+weighting:
+  shrink: [0.0, 0.5]
+  candidate_shrink: 0.5              # the conservative weighted ensemble (freeze candidate)
+
+# Step 14: Score_i = Q_i (1 - lambda R_i), R_i = mean error correlation with the
+# other models on the history rows; models whose predictions correlate at or above
+# duplicate_correlation share one weight (a copy adds no information).
+diversity:
+  enabled: true
+  lambdas: [0.5, 1.0]
+  candidate_lambda: 0.5
+  shrink: 0.5
+  duplicate_correlation: 0.999
+
+# Steps 21-26: simple meta-models only - logistic regression on the logits of the
+# constituents' probabilities, ridge on their expected values; inputs standardised
+# on the history rows. No booster as a meta-model.
+stacking:
+  meta_models: [logistic_regression, ridge]
+  logistic_C: 1.0
+  ridge_alpha: 1.0
+  max_rows: 600000                   # evenly spaced history rows beyond this (an estimate)
+  # Step 26: at most these context inputs, each known at t
+  context_features: [rv_percentile, regime_entropy, regime_confidence, disagreement, ood_score]
+
+# Steps 27-29: weights conditional on one state variable at a time
+conditional:
+  regime_probabilities: [regime_p0, regime_p1, regime_p2]   # soft weights (Step 28)
+  volatility_buckets: 4              # causal quartiles of log_rv_20 (Step 29)
+  min_rows_per_state: 5000           # fewer: that state uses the unconditional weights
+  shrink: 0.5
+
+# Steps 30-32: trailing model health, live-computable - updated once per trading
+# day from rows whose labels had resolved before that day's first bar (t + h <
+# update bar), over the last window_days trading days
+dynamic:
+  window_days: 60
+  min_rows: 2000
+  shrink: 0.5
+
+# Steps 33-34: calibrators fitted on history rows only (chronological)
+calibration:
+  methods: [sigmoid, isotonic]
+  isotonic_min_rows: 20000
+  bins: 20
+
+# Steps 15-18, 51-53
+size:
+  max_size: 8
+ensembles_by_family:                 # Step 17; "linear" = the reference linear model
+  tree_only: [random_forest, xgboost, lightgbm, catboost]
+  linear_plus_tree: [linear, xgboost, lightgbm]
+  compact_diversified: [linear, lightgbm, random_forest]
+feature_set_family: lightgbm         # Step 18: one family across its feature sets
+family_groups:                       # Step 52: leave one family group out
+  linear: [logistic_l2, logistic_l1, logistic_en, ols, ridge, elastic_net]
+  boosting: [xgboost, lightgbm, catboost]
+  random_forest: [random_forest]
+
+# Step 20: complementary information across horizons (same target, same family)
+cross_horizon:
+  mean_reversion: {families: [logistic_l2, lightgbm], anchor: 5}
+  future_volatility: {families: [ridge, lightgbm], anchor: 5}
+  future_return: {families: [ridge, lightgbm], anchor: 1}
+
+alpha_decay_horizons: [1, 2, 3, 5, 10, 20, 50]
+
+# Steps 39-48: grouped evaluation
+stability:
+  min_rows_year: 5000                # fewer: the year is reported with a warning flag
+  min_rows_quarter: 3000
+  min_rows_group: 2000
+  weight_range_flag: 0.4             # a model's weight moving more than this across blocks
+failure:
+  large_error_quantile: 0.99         # Step 49: the largest 1 % of ensemble losses
+  common_mode_quantile: 0.90         # Step 50: every constituent beyond its own 90 % loss quantile
+
+# Steps 75-78
+controls:
+  null_ensemble: true                # shifted-label models; random-walk / sign-flip pipelines
+  noise_model: true
+  duplicate_model: true
+
+# -----------------------------------------------------------------------------
+# Freeze rules (Steps 54, 59-61, 84) - development (meta walk-forward) results only.
+# Candidates in complexity order; a candidate replaces the one retained so far
+# only when it is better on the primary metric block by block by more than one SE
+# with at least min_wins of the evaluation blocks, and (classification) does not
+# raise the mean ECE by more than max_ece_increase. What the rule retains is what is
+# frozen: when no ensemble earns its complexity, the single model (the best
+# individual) is frozen as a one-member spec and the simple average of the universe
+# is evaluated beside it as the benchmark.
+# (Corrected 2026-10-01 after the first development results, before any freeze or
+# final test: the first version froze the simple average as the pair's output even
+# when the rule had rejected it - packaging only, the rule's decisions are unchanged.)
+# -----------------------------------------------------------------------------
+freeze:
+  order: [best_individual, simple_average, median, performance_weighted, diversity_weighted,
+          stacking, regime_conditioned, volatility_conditioned, dynamic]
+  min_wins: 3
+  max_ece_increase: 0.005
+  metric: {classification: log_loss_skill, regression: rank_ic}
+  benchmark_when_single_retained: simple_average     # evaluated beside the single model
+  # classification: the final calibration of a probability-average ensemble is the simplest
+  # of none / sigmoid / isotonic whose mean log loss over the evaluation blocks is within one
+  # SE of the lowest, read on the simple average (variants A and C, calibrators fitted on
+  # earlier blocks); a stacked logistic meta-model is calibrated by construction
+  calibration_rule: simplest_within_one_se
+
+# Steps 66-71
+inference:
+  missing_constituent_policy: fail_closed     # ENSEMBLE_INVALID; no silent fallback
+streaming:
+  steps: 40
+  stride: 7
+  rtol: 1.0e-4
+  atol: 1.0e-6
+
+registry:
+  version: 1
+ledger:
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}
+storage:
+  results_path: results/ensemble_research
+  predictions_path: results/ml_research
+  models_path: data/models
+  registry_path: config/ensemble_registry.yaml   # generated by `xq ensemble-finalize`; do not edit

@@ -1,0 +1,244 @@
+# ===========================================================================
+# xauusd-quant - rolling regression / residual research configuration
+#
+# This file governs the rolling-regression detrending model and the residual
+# studies built on it. `config/data.yaml` still owns the dataset and
+# `config/research.yaml` owns the general statistical layer.
+#
+# Nothing here is a trading parameter. There are no thresholds to optimise, no
+# entries and no exits - the windows below are a comparison grid, not a search
+# space. See "Rule 2" in the README: we are testing whether an effect persists
+# across neighbouring windows, not looking for the window where it is largest.
+# ===========================================================================
+
+schema_version: "1.0.0"
+
+# Where regression features and research output are written.
+features_path: "${XAUUSD_FEATURES_PATH:-data/features/regression}"
+results_path: "${XAUUSD_REGRESSION_RESULTS:-results/regression_research}"
+
+timeframes: ["1m", "5m", "15m", "30m", "1h"]
+
+# ---------------------------------------------------------------------------
+# The rolling model
+#
+#   y_i = alpha + beta * x_i + eps_i   for i = 0 .. N-1 inside each window
+#
+# x is the deterministic local coordinate 0..N-1, so the window's own position
+# in history never enters the fit. The window ENDS at t: the regression at t
+# uses bars t-N+1 .. t and nothing later.
+# ---------------------------------------------------------------------------
+regression:
+  # A comparison grid, deliberately spanning a factor of 16.
+  windows: [32, 64, 128, 256, 512]
+
+  # log by default. A move 2000 -> 2010 and 4000 -> 4020 are the same in log
+  # terms and should be treated as such; regressing raw price would weight the
+  # later years far more heavily. `price` is available for comparison only.
+  price_transform: log          # log | price
+
+  # mid is the research price. Bid or ask alone would fold the spread's own
+  # dynamics into the trend estimate.
+  price_source: mid
+  price_column: close
+
+  # True: the window is [t-N+1, t] and the fit includes bar t itself. This is
+  # causal - bar t is known at t - and is what "detrend the price as of now"
+  # means. False shifts everything one bar, for a feature that must be known
+  # before bar t forms.
+  include_current_bar: true
+
+  # Fraction of the window that must be present for a value to be emitted.
+  # 1.0 means a full window or nothing, which is the honest default: a
+  # 128-bar regression fitted to 90 bars is a different model.
+  min_periods_ratio: 1.0
+
+  # A window is a count of BARS, not a span of time, so one may straddle a
+  # weekend or the daily break. Flagging them lets the reports check whether
+  # that matters rather than assuming it does not.
+  flag_session_spanning_windows: true
+
+# ---------------------------------------------------------------------------
+# Residual Z-scores
+#
+# Two genuinely different normalisations, kept in separate columns because
+# conflating them is easy and wrong:
+#
+#   METHOD A - `residual_zscore_fit`
+#     Z = eps_t / s_fit,  s_fit = sqrt(SSE / (N - 2))
+#     The residual standard error of the CURRENT fit. The in-window residual
+#     mean is exactly zero by OLS construction, so no mean is subtracted.
+#     Scale comes from the same N bars that produced the residual.
+#
+#   METHOD B - `residual_zscore_rolling`
+#     Z = (eps_t - mu_t) / sigma_t
+#     mu and sigma are rolling statistics of the residual SERIES over the past
+#     `zscore_windows` observations. This asks "how unusual is today's residual
+#     against recent residuals?", which is a different question, and the mean
+#     is not structurally zero.
+#
+# Both are causal. Neither is "the" Z-score.
+# ---------------------------------------------------------------------------
+zscore:
+  # `same_as_regression` uses the regression window itself; the integers add
+  # further rolling windows for Method B.
+  rolling_windows: ["same_as_regression", 64, 128, 256]
+  # Which Method B window becomes the primary `residual_zscore_rolling` column.
+  primary_rolling_window: "same_as_regression"
+  min_periods_ratio: 1.0
+
+# ---------------------------------------------------------------------------
+# Numerical safety
+#
+# A flat window has zero residual variance and would give an infinite Z-score.
+# Anything below these floors yields NaN and is counted, never silently
+# returned as a huge number.
+# ---------------------------------------------------------------------------
+numerical:
+  epsilon: 1.0e-12
+  min_residual_std: 1.0e-10
+  min_total_variance: 1.0e-16
+  # Peak memory is bounded by processing this many window elements at a time,
+  # so cost does not grow with series length.
+  chunk_elements: 4000000
+
+# ---------------------------------------------------------------------------
+# Residual distribution
+# ---------------------------------------------------------------------------
+distribution:
+  quantiles: [0.001, 0.005, 0.01, 0.025, 0.05, 0.25, 0.50, 0.75,
+              0.95, 0.975, 0.99, 0.995, 0.999]
+  gaussian_reference: true
+  tail_sigma_levels: [2, 3, 4, 5]
+
+# ---------------------------------------------------------------------------
+# Residual autocorrelation
+# ---------------------------------------------------------------------------
+autocorrelation:
+  max_lag: 100
+  # The residual, its first difference, and |residual|. The differenced series
+  # matters because a rolling-regression residual is heavily autocorrelated by
+  # construction; its changes are the more informative object.
+  series: ["residual", "residual_diff", "abs_residual"]
+  confidence_level: 0.95
+  ljung_box_lags: [5, 10, 20, 50]
+
+# ---------------------------------------------------------------------------
+# Stationarity of the residual
+#
+# Read with care. A rolling-regression residual is not a free-standing time
+# series: each point is detrended against a different local fit, which removes
+# low-frequency variation mechanically. ADF will therefore tend to reject a
+# unit root whether or not any economically meaningful mean reversion exists.
+# The reports say this next to every result.
+# ---------------------------------------------------------------------------
+stationarity:
+  adf_enabled: true
+  kpss_enabled: true
+  adf_regression: "c"
+  adf_autolag: "AIC"
+  kpss_regression: "c"
+  kpss_nlags: "auto"
+  # ADF with AIC lag selection is superlinear; it converges long before this.
+  max_observations: 120000
+  segmented_by: "year"
+  segment_min_observations: 2000
+
+# ---------------------------------------------------------------------------
+# Mean-reversion relationship
+#
+#   d_eps_{t+1} = a + b * eps_t + eta_t
+#
+# b < 0 is consistent with local mean reversion. It is NOT an OU estimate and
+# NOT a half-life; Prompt #4 handles that properly.
+#
+# Overlapping rolling windows make consecutive residuals strongly dependent, so
+# plain OLS standard errors are optimistic. Newey-West errors are reported
+# alongside and the reports say which to trust.
+# ---------------------------------------------------------------------------
+decay:
+  newey_west_lags: "auto"       # auto -> 4*(n/100)^(2/9), or an integer
+  min_observations: 500
+
+# ---------------------------------------------------------------------------
+# Residual decay / extreme behaviour
+#
+# Everything here is OUTCOME analysis. Future residuals are never used as
+# features, thresholds or conditioning variables.
+# ---------------------------------------------------------------------------
+extremes:
+  # Left-closed bins on the Z-score at time t.
+  zscore_bins: [-1000, -3, -2, -1, 0, 1, 2, 3, 1000]
+  forward_horizons: [1, 2, 3, 5, 10, 20, 50]
+
+  # Zero-crossing search horizon. Observations that never cross within this
+  # many bars are reported as censored rather than dropped, because dropping
+  # them would bias every crossing statistic downward.
+  max_crossing_horizon: 200
+  crossing_checkpoints: [5, 10, 20, 50, 100, 200]
+
+  # Maximum adverse residual excursion: how much FURTHER from zero the residual
+  # travels before it reverts. In residual and Z units, not currency.
+  mare_horizon: 50
+
+  # "Becomes more extreme first": from |Z| > entry, does it reach these
+  # further-out levels before returning to `persistence_revert_to`?
+  persistence_levels: [2.5, 3.0, 3.5]
+  persistence_revert_to: 1.0
+
+  min_samples_warning: 200
+  bootstrap:
+    enabled: true
+    iterations: 1000
+    confidence_level: 0.95
+    seed: 20260924
+    max_samples: 200000
+
+# ---------------------------------------------------------------------------
+# Conditioning
+#
+# All conditioning variables are known at t. Volatility reuses the Prompt #2
+# rolling estimator; slope and R-squared come from the same fit as the residual.
+# ---------------------------------------------------------------------------
+conditioning:
+  extreme_abs_z: 2.0            # |Z| above this counts as an extreme
+  quantile_buckets: 4           # quartiles for slope / R^2 / volatility
+  volatility_window: 50         # bars, for the trailing volatility used to bucket
+  by_year: true
+  by_hour: true
+  time_basis: timestamp         # timestamp (broker clock) | timestamp_utc
+
+# ---------------------------------------------------------------------------
+# Optional robust comparison
+#
+# OLS is and remains the model. Theil-Sen is O(N^2) per window and is only ever
+# run on a small random subsample of windows, purely to check that the OLS
+# slope is not being driven by outliers.
+# ---------------------------------------------------------------------------
+robust:
+  enabled: false
+  method: theil_sen            # theil_sen | huber
+  max_windows: 2000
+  seed: 20260924
+
+# ---------------------------------------------------------------------------
+# Plots
+# ---------------------------------------------------------------------------
+plots:
+  enabled: true
+  format: png
+  dpi: 130
+  figsize: [11, 6]
+  # Bars shown in the price-and-fit and residual time-series panels.
+  sample_bars: 1500
+  max_scatter_points: 40000
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+output:
+  write_parquet: true
+  write_csv: true
+  write_json: true
+  # Cache the residual feature tables so repeated research runs do not refit.
+  cache_features: true

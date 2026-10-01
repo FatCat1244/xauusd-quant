@@ -1,0 +1,277 @@
+# ===========================================================================
+# xauusd-quant - data pipeline configuration
+#
+# Relative paths are resolved against the repository root (the directory that
+# contains pyproject.toml). String values support ${ENV_VAR} expansion, with
+# an optional ${VAR:-default} fallback.
+# ===========================================================================
+
+schema_version: "1.0.0"
+instrument: XAUUSD
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+# raw_data_path may be a single file, a directory, or a glob. It is only ever
+# read - the pipeline never writes to it.
+raw_data_path: "${XAUUSD_RAW_DATA_PATH:-data/2026.9.18XAUUSD_oanda-TICK-No Session.csv}"
+processed_data_path: "${XAUUSD_PROCESSED_DATA_PATH:-data/parquet}"
+bars_path: "${XAUUSD_BARS_PATH:-data/bars}"
+metadata_path: "${XAUUSD_METADATA_PATH:-data/metadata}"
+
+# ---------------------------------------------------------------------------
+# Raw input format
+#
+# Detected from the real file by `xq detect-schema`. Set a column to null when
+# the source does not provide it.
+# ---------------------------------------------------------------------------
+input_format: csv
+delimiter: ","
+encoding: utf-8
+has_header: true
+quote_char: "\""
+comment_prefix: null
+
+timestamp_column: DateTime
+bid_column: Bid
+ask_column: Ask
+volume_column: Volume
+spread_column: Spread        # source ships one; kept as `spread_source`
+                             # while `spread` is still derived from bid/ask,
+                             # so the two can be compared rather than trusted
+mid_column: null             # source has no mid column; it is derived
+
+# chrono/polars strptime format. `%.f` accepts 0-9 fractional digits.
+timestamp_format: "%Y%m%d %H:%M:%S%.f"
+
+# True when the raw timestamp string sorts identically to chronological order
+# (e.g. zero-padded YYYYMMDD HH:MM:SS). Enables O(log n) byte-offset seeking,
+# which is what makes `convert --resume` cheap. Set false for formats such as
+# "31/12/2021 23:59:59" that do not sort lexicographically.
+timestamp_lexicographic: true
+
+decimal_separator: "."
+thousands_separator: null
+
+# ---------------------------------------------------------------------------
+# Timezone policy
+#
+# The raw file carries NAIVE timestamps with no zone information. The pipeline
+# never rewrites them: the canonical `timestamp` column is always the original
+# wall clock exactly as recorded. `timestamp_utc` is an OPTIONAL derived column
+# produced by the rule below, and partitioning is always done on `timestamp`,
+# so changing this block never moves data between partitions.
+#
+# mode:
+#   naive         - no zone is claimed; timestamp_utc is not produced
+#   fixed_offset  - local = UTC + fixed_offset_hours (no DST)
+#   iana          - the local wall clock belongs to iana_tz
+#   anchored_dst  - local = (wall clock of anchor_tz) + offset_hours.
+#                   Models the common MT4/MT5 "broker server time" that tracks
+#                   a foreign DST calendar and has no IANA equivalent.
+#
+# EVIDENCE for the values below. The dataset spans 2003-2026, so the rule was
+# re-derived across the whole period rather than assumed from its recent years.
+# Two independent methods agree:
+#
+#   1. US 08:30 New York releases (NFP) produce their tick-rate spike at 15:30
+#      in this file, in BOTH the EST and EDT halves of the year. Aggregated over
+#      48-77 release days per era this is unambiguous for 2011-2026 (4-5x the
+#      median minute). It also holds during the weeks when the EU and US DST
+#      calendars disagree, which rules out every Europe/* zone.
+#   2. The CME settlement lull, 17:00-18:00 New York, is the quietest hour of
+#      the gold day and is anchored to the New York clock. It sits at local hour
+#      00:00-01:00 in EVERY era and BOTH seasons, 2003 through 2026. This is
+#      what resolves 2003-2010, where the release-spike method is too noisy
+#      because the early data is sparse.
+#
+#   => local = America/New_York wall clock + 7 h, for the entire dataset:
+#      UTC+2 during US winter, UTC+3 during US summer.
+#
+# NOTE - a structural change in January 2012, which is NOT a clock change:
+#   before 2012 the 00:00-01:00 lull hour still carries ~1.2% of each day's
+#   ticks; from 2012-01 onward the provider stops exporting it entirely
+#   (~0.001%), turning the lull into a hard one-hour gap. The weekly shape
+#   changes with it: Mon 00:00 -> Fri 23:59 (48 h weekend) before 2012,
+#   Mon 01:00 -> Fri 23:59 (49 h weekend) after. Only the export changed; the
+#   offset from New York is +7 h throughout.
+#
+# US DST switches at 02:00 New York on a Sunday = 09:00 broker time, which
+# always falls inside the weekend market close, so no real tick is ever
+# ambiguous or non-existent. on_ambiguous/on_non_existent exist for safety.
+# ---------------------------------------------------------------------------
+timezone:
+  source_label: broker_server_time
+  mode: anchored_dst
+  anchor_tz: America/New_York
+  offset_hours: 7
+  fixed_offset_hours: 2       # used only when mode == fixed_offset
+  iana_tz: null               # used only when mode == iana
+  emit_utc_column: true
+  on_ambiguous: earliest      # earliest | latest | null | raise
+  on_non_existent: "null"     # null | raise
+
+# ---------------------------------------------------------------------------
+# Canonical tick schema
+# ---------------------------------------------------------------------------
+canonical:
+  timestamp_precision: us     # ms | us | ns  (source has ms; us is lossless)
+  price_dtype: float64
+  volume_dtype: float64
+  derive_mid: true            # mid = (bid + ask) / 2
+  derive_spread: true         # spread = ask - bid
+  # When the source DOES have a spread column it is preserved under this name,
+  # and `spread` is still derived from bid/ask so the two can be compared.
+  keep_source_spread_as: spread_source
+
+# ---------------------------------------------------------------------------
+# Validation thresholds
+#
+# These only decide what gets FLAGGED and counted. What gets dropped is
+# controlled entirely by the `cleaning` block below.
+# ---------------------------------------------------------------------------
+validation:
+  min_price: 100.0            # XAUUSD has never traded below this
+  max_price: 100000.0
+  max_spread: 50.0            # flagged as "extreme"; observed p99 is ~1.1
+  max_volume: 1000000.0
+  large_gap_seconds: 3600     # flagged as a gap; the known daily break is 1 h
+  max_reported_gaps: 200      # cap on the gap list stored in the JSON report
+  max_reported_examples: 20   # cap on example bad rows kept per check
+
+  # How many earlier rows are carried forward when looking for repeated rows.
+  # Duplicates are NOT always adjacent in this export (see `cleaning` below):
+  # the weekly splices put the two copies ~8,600 rows apart, so an
+  # adjacent-only check misses them entirely. 200k comfortably covers that.
+  # Anything further apart than this is not caught by the streaming pass, but
+  # `xq metadata` re-checks the whole dataset exactly and reports what escaped.
+  duplicate_window_rows: 200000
+
+# ---------------------------------------------------------------------------
+# Cleaning policy - conservative by design.
+#
+# Every `drop_*: true` removes rows; every one of them is counted and logged.
+# Anything set to false is PRESERVED and only flagged. Prices are never
+# modified, interpolated or forward-filled under any setting.
+# ---------------------------------------------------------------------------
+cleaning:
+  drop_unparseable_timestamp: true    # a row with no usable time is unusable
+  drop_missing_bid_or_ask: true       # a quote with no price is unusable
+  drop_non_positive_price: true       # bid <= 0 or ask <= 0 is impossible
+  drop_non_finite: true               # NaN / +-Inf is impossible
+
+  drop_ask_below_bid: false           # real crossed quotes happen -> keep+flag
+  drop_negative_spread: false         # same signal as above -> keep+flag
+  drop_extreme_spread: false          # news spikes are real -> keep+flag
+  drop_price_out_of_range: false      # keep+flag; inspect before trusting
+  drop_negative_volume: false         # keep+flag
+  # ENABLED for this export, against the usual preserve-and-flag default.
+  # Evidence: across all 731.9M rows, every duplicated timestamp is also a
+  # verbatim duplicate row (2,683,808 of them, identical timestamp, bid, ask,
+  # volume and spread). Not one is a genuine two-ticks-in-one-millisecond
+  # event - those would differ in price. They come from ~301 weekly splices in
+  # the 2021-2026 section, each repeating about an hour of ticks; 2003-2020 is
+  # completely free of them. Keeping verbatim repeats would inflate tick_count
+  # and volume and distort every spread statistic downstream.
+  # The first occurrence is always the one kept, and every removal is counted
+  # in cleaning_report.json. Set this back to false to keep them and only flag.
+  drop_exact_duplicate_rows: true
+  drop_duplicate_timestamps: false    # several ticks per ms would be legitimate
+  drop_non_monotonic: false           # keep+flag; order is fixed on write
+
+  # Deterministic tie-break used when a drop_duplicate_* rule IS enabled.
+  duplicate_keep: first               # first | last
+
+# ---------------------------------------------------------------------------
+# Streaming CSV -> Parquet conversion
+# ---------------------------------------------------------------------------
+#
+# Partition-safe: a one-pass source index records which byte ranges hold each
+# year-month, so every partition is converted, sorted, verified and written on
+# its own (atomically, via *.parquet.partial). Nothing assumes the source is
+# sorted, and `xq convert` resumes at partition granularity.
+#
+# None of these settings changes the converted data, so none of them is part of
+# the tick fingerprint that decides whether a partition is reusable.
+# ---------------------------------------------------------------------------
+conversion:
+  read_block_mb: 64           # CSV bytes handed to the parser per block
+  index_block_mb: 64          # raw bytes scanned per step by the source index
+  resume: true                # reuse partitions that verify against the manifest
+  progress: true
+  digest: true                # blake2b over written columns, for reproducibility
+  # Refuse to start a conversion that would leave less than this much free
+  # space on the output volume. The raw file is ~34 GB on a shared disk.
+  min_free_gb: 5.0
+  # After a transactional rebuild (--overwrite), keep the replaced dataset as a
+  # timestamped backup instead of deleting it.
+  keep_previous: false
+
+# ---------------------------------------------------------------------------
+# Parquet storage
+# ---------------------------------------------------------------------------
+parquet:
+  compression: zstd
+  compression_level: 7
+  partitioning: [year, month]     # Hive-style year=YYYY/month=MM
+  row_group_rows: 500000
+  write_statistics: true
+  use_dictionary: false           # prices/timestamps are high-cardinality
+  filename_template: "xauusd-ticks-{year}-{month}.parquet"
+
+# ---------------------------------------------------------------------------
+# Dataset metadata
+# ---------------------------------------------------------------------------
+metadata:
+  exact_quantiles: false      # false -> DuckDB approx_quantile (t-digest)
+  spread_percentiles: [1, 5, 25, 50, 75, 90, 95, 99, 99.9]
+
+# ---------------------------------------------------------------------------
+# Time bars
+#
+# DEFAULT TIMESTAMP CONVENTION: `label: open`.
+# A bar stamped 10:05:00 on the 5m grid covers ticks in [10:05:00, 10:10:00).
+# `closed: left` means a tick landing exactly on 10:10:00.000 belongs to the
+# NEXT bar, never the one being stamped. No bar can see a future tick.
+# Set `label: close` to stamp bars with their interval end instead.
+# ---------------------------------------------------------------------------
+resampling:
+  timeframes: ["1m", "5m", "15m", "30m", "1h"]
+  price_source: mid           # mid | bid | ask
+  label: open                 # open | close
+  closed: left                # left | right
+  time_basis: timestamp       # timestamp (broker time) | timestamp_utc
+  min_ticks_per_bar: 1        # bars below this are dropped; 1 keeps everything
+  include_bid_ask_edges: true # first_bid/first_ask/last_bid/last_ask
+  partition_by: year          # bars are small; one file per year per timeframe
+  filename_template: "xauusd-bars-{timeframe}-{year}.parquet"
+
+# ---------------------------------------------------------------------------
+# Bar-level data-quality diagnostics
+# ---------------------------------------------------------------------------
+diagnostics:
+  low_tick_count_quantile: 0.01   # bars under this tick-count quantile
+  max_reported_gaps: 100
+  # Gaps matching the known instrument schedule are reported separately from
+  # unexplained gaps, so real data loss stands out. Times are in `time_basis`.
+  #
+  # These values describe the 2012-onward export. Before 2012 the provider did
+  # not remove the 00:00-01:00 hour, so there is simply no daily gap to
+  # classify in that era and these settings are harmless there. The weekly
+  # rules hold throughout, because gap classification matches on weekday rather
+  # than on an exact open/close time.
+  session:
+    daily_break_start: "00:00"
+    daily_break_end: "01:00"
+    week_open_weekday: 1        # ISO weekday: Monday=1 ... Sunday=7
+    week_open_time: "01:00"
+    week_close_weekday: 5
+    week_close_time: "23:59"
+
+# ---------------------------------------------------------------------------
+# DuckDB query layer
+# ---------------------------------------------------------------------------
+duckdb:
+  threads: null               # null -> DuckDB default
+  memory_limit: "4GB"
+  max_rows_without_override: 50000000   # guard against accidental full loads

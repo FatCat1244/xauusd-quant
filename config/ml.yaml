@@ -1,0 +1,281 @@
+# =============================================================================
+# xauusd-quant - supervised predictive-model research (Prompt #10)
+# =============================================================================
+# Can supervised models extract stable out-of-sample information from the
+# Prompt #9 feature manifests? Predictions only: probabilities, expected values,
+# intervals, uncertainty - never BUY / SELL, sizes, stops or PnL.
+#
+# Development uses 2003-2021 only (walk-forward). The reserved test period of
+# feature_selection.yaml (2022-01-01 -> end) is sealed: no loader here can read
+# its outcomes except `xq ml-final-test`, which requires a frozen model spec
+# and logs every access. Every number below was fixed before any model result
+# existed; the freeze rules at the end decide what reaches the final test.
+# =============================================================================
+
+schema_version: "1.0.0"
+random_seed: 20261010
+timeframes: [5m, 15m]
+primary_timeframe: 5m
+
+# -----------------------------------------------------------------------------
+# Walk-forward development (Steps 11-14). Blocks are [start, end); training is
+# every bar before a block (expanding) or the last `rolling_years` (rolling),
+# purged by the target horizon and an embargo, so no outcome window reaches
+# into the block it is scored on.
+# -----------------------------------------------------------------------------
+walk_forward:
+  scheme: expanding
+  validation_blocks:
+    - [2011-01-01, 2013-01-01]
+    - [2013-01-01, 2015-01-01]
+    - [2015-01-01, 2018-01-01]
+    - [2018-01-01, 2020-01-01]
+    - [2020-01-01, 2022-01-01]
+  rolling_years: 5
+  embargo_bars: 12
+  # the last share of each training span, chronologically, is held out for
+  # early stopping and probability calibration (never for the model's own fit)
+  inner_fraction: 0.10
+  recent_blocks: 1                  # the last block (2020-2021) is "recent development"
+
+# -----------------------------------------------------------------------------
+# Feature sets: Prompt #9 manifests, read by name from
+# results/feature_selection/<tf>/manifests/<set>.json. `target` means the
+# target-specific manifest of the target's kind (below).
+# -----------------------------------------------------------------------------
+feature_sets: [standard, extended, target, minimal]
+default_feature_set: standard
+
+# -----------------------------------------------------------------------------
+# Targets (Steps 7-10). `source` is a Prompt #8 target family (data/targets);
+# derived labels are computed here from stored inputs and never written back.
+#   residual_shrinks      1{|eps_{t+h}| < |eps_t|}          (mean-reversion probability)
+#   residual_shrinks_c    1{|eps_{t+h}| < c |eps_t|}        (a meaningful reduction, c fixed)
+#   up_beyond_cost        1{R_{t,h} >  k * spread_rel_t}   (research approximation of a cost
+#   down_beyond_cost      1{R_{t,h} < -k * spread_rel_t}    buffer - NOT a tradable label)
+# Regression targets are fitted on a documented transform and evaluated on it
+# and, by rank, against the untransformed outcome.
+# -----------------------------------------------------------------------------
+targets:
+  mean_reversion:
+    source: residual_shrinks
+    task: classification
+    kind: reversion
+    horizons: [1, 3, 5, 10, 20]
+  mean_reversion_half:
+    source: residual_shrinks_c
+    c: 0.5
+    task: classification
+    kind: reversion
+    horizons: [5]
+  residual_reduction:
+    source: residual_reduction
+    task: regression
+    kind: reversion
+    transform: none                 # already scaled by the trailing volatility known at t
+    horizons: [1, 5, 20]
+  future_return:
+    source: return
+    task: regression
+    kind: direction
+    transform: vol_scaled           # R_{t,h} / sigma_t (sigma_t known at t)
+    horizons: [1, 5, 20]
+  direction_up_cost:
+    source: up_beyond_cost
+    cost_multiple: 1.0
+    task: classification
+    kind: direction
+    horizons: [1, 5, 20]
+  direction_down_cost:
+    source: down_beyond_cost
+    cost_multiple: 1.0
+    task: classification
+    kind: direction
+    horizons: [1, 5, 20]
+  future_volatility:
+    source: realized_vol
+    task: regression
+    kind: volatility
+    transform: log                  # ln(RV + floor)
+    horizons: [1, 5, 20]
+  future_abs_move:
+    source: abs_return
+    task: regression
+    kind: magnitude
+    transform: log                  # ln(|R| + floor)
+    horizons: [1, 5, 20]
+log_floor: 1.0e-5
+
+# Target x horizon pairs that get tree models (LightGBM at every primary pair;
+# all four tree families at the one `tree_comparison` horizon per target). Fixed
+# in advance so that no horizon is picked for the trees by its own result.
+primary:
+  mean_reversion: [1, 5, 20]
+  mean_reversion_half: [5]
+  residual_reduction: [5]
+  future_return: [1, 5]
+  direction_up_cost: [5]
+  future_volatility: [1, 5]
+  future_abs_move: [5]
+tree_comparison:
+  mean_reversion: 5
+  mean_reversion_half: 5
+  residual_reduction: 5
+  future_return: 1
+  direction_up_cost: 5
+  future_volatility: 5
+  future_abs_move: 5
+# the pairs that carry the expensive research (windows, weights, ablation, nulls)
+focus: [[mean_reversion, 5], [future_volatility, 5], [future_return, 1]]
+
+# -----------------------------------------------------------------------------
+# Model families (Steps 5, 17-22). Conservative defaults; limited search below.
+# -----------------------------------------------------------------------------
+models:
+  constant: {enabled: true}
+  logistic_l2: {enabled: true, C: 1.0, max_iter: 500}
+  logistic_l1: {enabled: true, C: 0.05, max_iter: 300, max_rows: 400000}
+  logistic_en: {enabled: true, C: 0.05, l1_ratio: 0.5, max_iter: 300, max_rows: 400000}
+  ols: {enabled: true}
+  ridge: {enabled: true, alpha: 10.0}
+  elastic_net: {enabled: true, alpha: 1.0e-4, l1_ratio: 0.5, max_iter: 2000}
+  random_forest:
+    enabled: true
+    n_estimators: 60
+    max_depth: 10
+    min_samples_leaf: 500
+    max_features: 0.33
+    max_samples: 0.25
+  xgboost:
+    enabled: true
+    n_estimators: 1000              # an upper bound: early stopping on the inner slice
+    learning_rate: 0.05
+    max_depth: 4
+    min_child_weight: 100
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.0
+    reg_lambda: 1.0
+    early_stopping_rounds: 50
+  lightgbm:
+    enabled: true
+    n_estimators: 1000
+    learning_rate: 0.05
+    num_leaves: 31
+    max_depth: 6
+    min_data_in_leaf: 500
+    feature_fraction: 0.8
+    bagging_fraction: 0.8
+    bagging_freq: 1
+    lambda_l2: 1.0
+    early_stopping_rounds: 50
+  catboost:
+    enabled: true
+    iterations: 600
+    learning_rate: 0.08
+    depth: 6
+    l2_leaf_reg: 3.0
+    early_stopping_rounds: 50
+threads: 4
+# complexity order for "prefer the simpler model when evidence is similar"
+simplicity_order: [constant, ols, ridge, logistic_l2, elastic_net, logistic_l1, logistic_en,
+                   random_forest, lightgbm, xgboost, catboost]
+linear_families: [logistic_l2, logistic_l1, logistic_en, ols, ridge, elastic_net]
+tree_families: [random_forest, xgboost, lightgbm, catboost]
+
+# -----------------------------------------------------------------------------
+# Preprocessing (Steps 15-16): fitted on each training span only.
+# -----------------------------------------------------------------------------
+preprocessing:
+  imputation: median                # + a missing indicator per feature missing in training
+  scaling: robust                   # median / IQR (linear models only)
+  clip: 8.0                         # |scaled value| cap for linear models
+  tree_missing: native              # native NaN handling for boosters (compared once with imputed)
+
+# -----------------------------------------------------------------------------
+# Calibration (Steps 26-29), fitted on the inner slice of each training span.
+# -----------------------------------------------------------------------------
+calibration:
+  methods: [none, platt, isotonic]
+  isotonic_min_rows: 20000          # below this isotonic is not fitted
+  bins: 20
+
+# -----------------------------------------------------------------------------
+# Research beyond the model grid.
+# -----------------------------------------------------------------------------
+search:                             # Steps 44-47: small, time-aware, every trial recorded
+  targets: [[mean_reversion, 5], [future_volatility, 5]]
+  folds: [3, 4]                     # zero-based validation blocks used by the search (2018-2021)
+  trials: {lightgbm: 12, xgboost: 8}
+  neighborhood: [num_leaves, max_depth, min_data_in_leaf, feature_fraction, lambda_l2,
+                 learning_rate]     # LightGBM: one grid step down / up around the best trial
+  lightgbm:
+    num_leaves: [7, 15, 31, 63]
+    max_depth: [3, 4, 6, 8]
+    min_data_in_leaf: [100, 300, 1000, 3000]
+    feature_fraction: [0.5, 0.7, 0.9]
+    bagging_fraction: [0.5, 0.7, 0.9]
+    lambda_l2: [0.0, 1.0, 10.0]
+    learning_rate: [0.03, 0.05, 0.1]
+  xgboost:
+    max_depth: [2, 3, 4, 6]
+    min_child_weight: [10, 100, 1000]
+    subsample: [0.5, 0.7, 0.9]
+    colsample_bytree: [0.5, 0.7, 0.9]
+    reg_lambda: [0.0, 1.0, 10.0]
+    reg_alpha: [0.0, 1.0]
+    learning_rate: [0.03, 0.05, 0.1]
+  complexity:
+    num_leaves: [3, 7, 15, 31, 63, 127]
+weighting:
+  half_lives_years: [2.0, 5.0]      # w_t = exp(-ln2 * age / half-life), vs equal weights
+learning_curve:
+  fractions: [0.2, 0.4, 0.6, 0.8, 1.0]   # the most recent share of the development history
+retraining:
+  window: [2018-01-01, 2022-01-01]
+  every_months: [1, 3, 6, 12]       # the reference linear model
+  every_months_trees: [3, 6, 12]    # LightGBM (monthly refits of a booster are costly here)
+decay:
+  train_end: 2011-01-01             # a model frozen here is scored on each later year
+ablation:
+  folds: [3, 4]                     # LightGBM on the Extended set, 2018-2021 blocks
+nulls:
+  shuffled_target_repeats: 2        # circular shifts of the training target (>= 10 % of the span)
+  shuffled_folds: [2, 3, 4]
+  noise_features: 5
+  pipeline: random_walk             # residual targets beside the random-walk pipeline (invariant 9)
+  # POST-HOC (added 2026-10-01, after the registered plan and after the first
+  # development results): the Prompt #8 sign-flip null - the real bars in real
+  # order with independent random signs, a martingale with the real volatility
+  # path. The random walk is homoscedastic, so real - random walk can hold
+  # volatility dynamics; real - sign flip cannot. A harder control, reported
+  # apart (stage pipeline_null_posthoc), never used to select or freeze a model.
+  pipeline_posthoc: [sign_flip]
+explain:
+  shap_rows_per_fold: 20000
+  ale_bins: 20
+  top_features: 6
+streaming:
+  steps: 40
+  stride: 7
+  rtol: 1.0e-4
+  atol: 1.0e-6
+
+# -----------------------------------------------------------------------------
+# Freeze rules (Step 75) - applied to development results only, then the specs
+# are immutable and `xq ml-final-test` evaluates them once.
+# -----------------------------------------------------------------------------
+freeze:
+  min_folds_beating_baseline: 4     # of 5 blocks, on the primary metric
+  one_se_rule: true                 # the simplest model within one SE (across blocks) of the best
+  metric: {classification: log_loss_skill, regression: rank_ic}
+  also_freeze: [constant, reference_linear]   # evaluated beside every frozen candidate
+
+registry:
+  version: 1
+ledger:
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}
+storage:
+  results_path: results/ml_research
+  models_path: data/models
+  registry_path: config/model_registry.yaml   # generated by `xq ml-finalize`; do not edit

@@ -1,0 +1,147 @@
+# =============================================================================
+# xauusd-quant - feature selection + dimensionality reduction (Prompt #9)
+# =============================================================================
+# Which compact, causal, low-redundancy, time-robust subset of the Prompt #8
+# feature factory may enter supervised learning (Prompt #10)?
+#
+# Feature selection is part of model fitting. Every outcome-based statistic
+# here (IC, nulls, mRMR relevance, L1 paths, stability) is computed inside a
+# chronological training period; the reserved test period's outcomes are
+# never loaded (feature *values* there may be computed - they are causal).
+# Nothing is chosen by trading profit; there is no PnL, cost or position.
+# Every number below was fixed before any selection result existed.
+# =============================================================================
+
+schema_version: "1.0.0"
+seed: 20261001
+# 5m is the primary timeframe; 15m, 30m and 1h show whether a selection holds
+# across bar lengths (`feature-select --all` runs them one at a time)
+timeframes: [5m, 15m, 30m, 1h]
+
+# -----------------------------------------------------------------------------
+# Chronological periods, [start, end), calendar-quarter aligned.
+# Coverage (bars): 5m 1.05M / 0.28M / 0.33M, 15m 356k / 95k / 111k for
+# development / validation / reserved. 2003-2007 carries the heavy early-feed
+# quote noise (Prompt #2); it stays in development and every stability view
+# splits it out (early / middle / late development years).
+# -----------------------------------------------------------------------------
+periods:
+  development: {start: "2003-01-01", end: "2018-01-01"}        # A: selection happens here
+  validation: {start: "2018-01-01", end: "2022-01-01"}         # B: validates selection choices
+  reserved_test: {start: "2022-01-01", end: null}              # C: untouched until Prompt #10+
+  recent_development: {start: "2015-01-01", end: "2018-01-01"} # "recent" relevance inside A
+  # nested folds inside development: train strictly before each block (expanding)
+  folds:
+    - {validate_start: "2011-01-01", validate_end: "2013-01-01"}
+    - {validate_start: "2013-01-01", validate_end: "2015-01-01"}
+    - {validate_start: "2015-01-01", validate_end: "2018-01-01"}
+  purge_bars: 50              # >= the longest target horizon: a training row whose
+                              # outcome window reaches the next period is dropped
+  embargo_bars: 12            # an extra gap after the purge
+
+selection_universe:
+  live_safe_only: true
+  exclude_non_causal: true
+  exclude_invalid: true
+  # failed_null is decided by the development-period null screen below. Prompt #8's
+  # full-history status (and the Prompt #5-#7 prior statuses) saw 2022-2026
+  # outcomes and are reported beside it, never used to select.
+  exclude_failed_null: true
+  interactions: true          # registered interactions are candidates (hierarchy rule below)
+  probes: 8                   # noise probe features (AR(1) and matched marginals): calibration only
+
+filters:
+  max_missing_fraction:        # after each feature's own warm-up; configured, never tuned
+    development: 0.40          # the walk-forward regime features start in 2008
+    validation: 0.05
+    recent_development: 0.05
+  near_constant:
+    max_dominant_fraction: 0.995   # one value in > 99.5 % of bars
+    min_unique_values: 2
+    binary_min_minority: 0.001     # a flag must be set in >= 0.1 % of bars (rare events kept)
+  numerical:
+    max_abs_value: 1.0e+6
+  drift:                       # classified, never excluded on drift alone
+    moderate_psi: 0.10
+    strong_psi: 0.25
+    strong_median_shift_iqr: 1.0
+
+null_screen:                   # development period (and each training fold) only
+  circular_shifts: 200
+  null_quantile: 0.99
+  min_shift_fraction: 0.1
+  fdr_q: 0.05
+  hac_lag_months: 2
+  min_observations: 2000
+
+targets:                       # target kind -> Prompt #8 target family
+  direction: return
+  reversion: residual_reduction
+  volatility: realized_vol
+  magnitude: abs_return
+  horizons: [1, 5, 20]
+  binary:                      # logistic views
+    direction: sign            # 1{R_(t,h) > 0}
+
+redundancy:
+  max_pairwise_correlation: 0.95   # |Spearman| above this: never both in one set
+  cluster_abs_corr: 0.9            # hierarchical clusters (average linkage)
+  sample_rows: 200000              # evenly spaced development rows (estimates)
+  nonmonotone_nmi: 0.5
+
+representative:
+  # lexicographic, documented: passes the null screen > yearly sign consistency
+  # (rounded to 0.1) > |median yearly rank IC| > recent-development relevance >
+  # lower missingness > cheaper live cost > shorter warm-up > name
+  consistency_round: 0.1
+
+mrmr:
+  relevance: [abs_rank_ic, mutual_information]
+  redundancy: abs_spearman
+  lambdas: [0.5, 1.0]
+  schemes: [difference, quotient]
+  max_features: 75
+  mi_bins: 20
+
+stability_selection:
+  resamples: 50                # half of the development quarters, drawn without replacement
+  block: quarter
+  fraction: 0.5
+  year_subsets: [odd_years, even_years, early, middle, late]
+  selector_k: 20               # top-k of the selector in each resample
+  frequency_threshold: 0.6
+
+linear:
+  ridge_alpha: 0.01            # on the correlation-scale Gram (unit diagonal); fixed, never
+                               # tuned on evaluation rows - a mild guard against collinearity
+  elastic_net_l2: [0.0, 0.1]   # LARS path on Q + l2 I: 0.0 = Lasso, 0.1 = naive elastic net
+  max_path_features: 75
+  logistic_max_rows: 150000    # evenly spaced training rows for the L1 logistic view
+  logistic_lambdas: [0.01, 0.005, 0.002, 0.001, 0.0005]   # per-row log-loss scale
+
+pca:
+  components: [5, 10, 20, 30]
+  sparse_pca: false            # optional; off (cost vs value)
+
+evaluation:
+  candidate_set_sizes: [5, 10, 20, 30, 50, 75]
+  permutation_repeats: 5
+  permutation_block_bars: 288  # one trading day at 5m (scaled to the timeframe)
+  plateau:
+    minimal: 0.90              # smallest k reaching this share of the best validation metric
+    standard: 0.97
+  min_meaningful_ic: 0.02      # a target whose best validation rank IC is below this does not
+                               # set the plateau (direction targets usually)
+
+drift_classes: [stable, moderately_drifting, strongly_drifting]
+
+manifest:
+  version: 1
+  families_order: [returns, volatility, autocorrelation, regression, ou, fft, wavelet, regime,
+                   microstructure, time, interaction]
+
+ledger:
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}
+
+storage:
+  results_path: results/feature_selection

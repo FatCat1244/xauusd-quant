@@ -1,0 +1,142 @@
+# =============================================================================
+# xauusd-quant - the feature factory (Prompt #8)
+# =============================================================================
+# Every feature the predictive research may use, organised by family. The
+# registry (src/xauusd_quant/features/registry.py) expands these parameters
+# into one entry per column - id, definition, source, window, minimum history,
+# live-safety, cost, parameter family and the status earlier research gave it.
+# Every value at bar t is computed from bars <= t; nothing here is chosen by
+# an outcome. Windows are round numbers fixed before any feature was scored,
+# and the neighbours of a window are kept as a parameter family so that one
+# "magical" setting can be seen for what it is.
+# =============================================================================
+
+schema_version: "1.0.0"
+
+timeframes: [1h, 30m, 15m, 5m]           # 1m: no FFT / wavelet log-return features exist
+source_feed: historical_research_feed    # later: exness (broker-specific validation)
+
+storage:
+  factory_path: ${XAUUSD_FACTORY_PATH:-data/features/factory}
+  results_path: ${XAUUSD_FEATURE_RESULTS:-results/feature_research}
+
+percentile_days: 20                      # trailing trading days of *_percentile features
+trading_hours_per_day: 23.0              # bars per trading day = 23 h / bar length
+
+families:
+  returns:
+    horizons: [1, 2, 5, 10, 20]          # ret_<h> = ln C_t - ln C_{t-h}
+    z_horizons: [20, 64]                 # ret_z_<h> = ret_h / (sigma_50 sqrt h)
+    moment_windows: [64, 256]            # rolling skewness and excess kurtosis of r
+    range_windows: [64]                  # position of C_t in its trailing high-low range
+    volatility_window: 50                # sigma of the z-normalisation (the Prompt #3 trailing sd)
+  volatility:
+    rv_windows: [5, 20, 64, 256, 1024]   # log_rv_<w> = 0.5 ln mean r^2 over w bars
+    ewma_lambdas: [0.94, 0.99]           # RiskMetrics-style EWMA of r^2 (log sd)
+    change_lag: 20                       # vol_change_20 = log_rv_20(t) - log_rv_20(t - 20)
+    ratio_pair: [20, 256]                # vol_ratio_20_256 = log_rv_20 - log_rv_256
+    range_window: 20                     # Parkinson and Garman-Klass estimators (perturbations of rv_20)
+  autocorrelation:
+    return_lags: [1, 2, 5]               # rolling corr(r_t, r_{t-k})
+    window: 256
+    lag1_windows: [128, 512]             # lag-1 at neighbouring windows (parameter family)
+  regression:
+    windows: [32, 64, 128, 256, 512]     # the Prompt #3 store
+    volatility_window: 50
+  ou:
+    regression_window: 128               # OU of the N = 128 residual, as in Prompts #4-#7
+    windows: [128, 256, 512]
+    full_window: 256                     # every OU output here; half-life, theta and Z at all windows
+    decay_horizon: 10                    # expected decay ratio b^h
+  fft:
+    series: log_return
+    windows: [128, 256, 512]             # 256 is the stored Prompt #5 set; 128 / 512 are computed
+    full_window: 256
+    residual_window: 256                 # FFT of the regression residual (stored)
+    abs_innovation_window: 256           # |eta|: the daily volatility cycle (stored at 15m-1h)
+  wavelet:
+    series: log_return
+    windows: [256, 512, 1024]            # 512 is the stored Prompt #6 set; 256 / 1024 are computed
+    full_window: 512
+  regime:
+    model: hmm                           # the Prompt #7 causal walk-forward filter
+    states: 3
+    scheme: expanding_quarterly
+  microstructure:
+    change_window: 20
+  time:
+    session_indicators: true
+
+# -----------------------------------------------------------------------------
+# What earlier research said (Step 5). Patterns are matched against feature
+# names (first match wins). failed_null_control / invalid / non_causal never
+# enter the default candidate set; their research history is kept.
+# -----------------------------------------------------------------------------
+prior_status:
+  - {pattern: "fft_abs_eta_*", status: candidate,
+     evidence: "Prompt #5: the one-trading-day volatility cycle in |eta| - dominant in 23-73 % of 15m-1h windows vs < 1 % for the nulls; the only spectral structure beyond them"}
+  - {pattern: "fft_dominant_period_*", status: failed_null_control,
+     evidence: "Prompt #5: every dominant period except the daily |eta| cycle is fixed in bars - a window artefact"}
+  - {pattern: "fft_flatness_*", status: redundant,
+     evidence: "Prompt #5/#7: near-duplicate of spectral entropy"}
+  - {pattern: "fft_top3_share_*", status: redundant,
+     evidence: "Prompt #5/#7: near-duplicate of spectral entropy"}
+  - {pattern: "fft_*", status: failed_null_control,
+     evidence: "Prompt #5: spectral shape, persistence and IC of the residual, innovation and returns within the four nulls (SPEC-H)"}
+  - {pattern: "wav_fast_slow_*", status: weak,
+     evidence: "Prompt #6: the only structure beyond the nulls is the intraday shift of energy to fine scales (the daily cycle); its model increment vanished once RV 64-1024 and the hour were in the baseline (WAVE-P-001)"}
+  - {pattern: "wav_top3_share_*", status: redundant,
+     evidence: "Prompt #6/#7: near-duplicate of wavelet entropy"}
+  - {pattern: "wav_dominant_period_*", status: failed_null_control,
+     evidence: "Prompt #6: every dominant band is fixed in bars; the dominant band does not survive a change of wavelet family"}
+  - {pattern: "wav_*", status: failed_null_control,
+     evidence: "Prompt #6: shape, persistence, bursts and IC within the nulls (WAVE-H)"}
+  - {pattern: "regime_*", status: failed_null_control,
+     evidence: "Prompt #7: persistence within the pipeline nulls at every K (REG-H-005 0 of 12); increments <= 0.001 (REG-H-007); the trend states are R^2 vs |slope/vol| geometry"}
+  - {pattern: "ou_*", status: weak,
+     evidence: "Prompt #4: faster reversion than the random-walk control at 1m-15m is mostly the 2003-2007 quote noise; a windowed OU half-life of a random walk is finite"}
+  - {pattern: "reg_*", status: candidate,
+     evidence: "Prompt #3/#7: residual reversion is largely mechanical (a random walk reproduces most of it); read against the pipeline nulls"}
+  - {pattern: "*", status: candidate,
+     evidence: "returns, volatility, autocorrelation, microstructure and time: volatility (level, clustering) and the daily cycle are the only structure that survived the nulls in Prompts #5-#7"}
+
+# Features known to be invalid at a timeframe (undefined by construction).
+invalid:
+  - {pattern: "wav_fast_slow_256", timeframes: [5m],
+     reason: "Prompt #6: no slow band at 5m for N <= 256 - the ratio is undefined"}
+
+# -----------------------------------------------------------------------------
+# Controlled interactions (Step 43): theoretically motivated pairs only. Both
+# components are causally standardised (trailing mean / sd over
+# interaction_standardisation_days, clipped at +-10) before multiplying.
+# -----------------------------------------------------------------------------
+interaction_standardisation_days: 20
+interactions:
+  - {a: reg_resid_z_128, b: ou_theta_256,
+     why: "does residual reversion depend on the fitted reversion speed?"}
+  - {a: reg_resid_z_128, b: fft_entropy_256,
+     why: "is the residual more informative when the return spectrum is flat (noise-like)?"}
+  - {a: reg_resid_z_128, b: wav_fast_slow_512,
+     why: "is the residual more informative when energy sits at fast scales?"}
+  - {a: ou_theta_256, b: regime_p0,
+     why: "soft regime interaction (Step 30): OU speed weighted by a regime probability"}
+  - {a: reg_resid_z_128, b: regime_p1,
+     why: "soft regime interaction: residual Z weighted by a regime probability"}
+  - {a: spread_percentile, b: log_rv_20,
+     why: "wide spreads in high volatility vs wide spreads in calm markets"}
+  - {a: fft_entropy_256, b: wav_entropy_512,
+     why: "do the two time-frequency descriptions agree or add?"}
+  - {a: ret_z_20, b: log_rv_20,
+     why: "is short-horizon drift more informative in high volatility?"}
+
+# -----------------------------------------------------------------------------
+# Feature-family ablation manifests (Step 70): cumulative groups for Prompt #9.
+# -----------------------------------------------------------------------------
+ablation:
+  A: [returns, volatility, autocorrelation]
+  B: [returns, volatility, autocorrelation, regression]
+  C: [returns, volatility, autocorrelation, regression, ou]
+  D: [returns, volatility, autocorrelation, regression, ou, fft]
+  E: [returns, volatility, autocorrelation, regression, ou, fft, wavelet]
+  F: [returns, volatility, autocorrelation, regression, ou, fft, wavelet, regime]
+  G: [returns, volatility, autocorrelation, regression, ou, fft, wavelet, regime, microstructure, time]

@@ -1,0 +1,39 @@
+# =============================================================================
+# xauusd-quant - the target factory (Prompt #8)
+# =============================================================================
+# Targets are OUTCOMES: every one uses bars after t. They live in their own
+# store (data/targets), every column is prefixed `target_`, and the feature
+# factory refuses any such column. A target at t is aligned so that the
+# feature at t is paired with what happens over bars t+1 .. t+h - never the
+# other way round. Horizons are counted in bars of the bar sequence (trading
+# time, the convention of every earlier layer); a flag records when the span
+# crosses a weekend.
+# =============================================================================
+
+schema_version: "1.0.0"
+
+horizons: [1, 2, 3, 5, 10, 20, 50]       # bars ahead
+
+# Which outcome families to build (Steps 14-19):
+#   return                 ln(C_{t+h} / C_t)
+#   abs_return             |ln(C_{t+h} / C_t)|
+#   realized_vol           sqrt(sum_{i=1..h} r_{t+i}^2)
+#   residual_change        (eps_{t+h} - eps_t) / sigma_t
+#   residual_reduction     (|eps_t| - |eps_{t+h}|) / sigma_t     (> 0: the residual shrank)
+#   residual_shrinks       1{|eps_{t+h}| < |eps_t|}
+#   ou_deviation_reduction (|eps_t - mu_t| - |eps_{t+h} - mu_t|) / sigma_t, mu_t known at t
+#   max_up                 max_{i=1..h} ln(High_{t+i} / C_t)
+#   max_down               min_{i=1..h} ln(Low_{t+i} / C_t)     (<= 0)
+families: [return, abs_return, realized_vol, residual_change, residual_reduction,
+           residual_shrinks, ou_deviation_reduction, max_up, max_down]
+
+residual:
+  regression_window: 128                 # eps: the Prompt #3 N = 128 rolling-regression residual
+  scale: trailing_volatility             # sigma_t: the 50-bar trailing sd of r, known at t
+ou:
+  window: 256                            # mu_t: the rolling OU equilibrium fitted on bars <= t
+
+weekend_gap_hours: 24.0                  # a span with a gap longer than this crosses a weekend
+
+storage:
+  targets_path: ${XAUUSD_TARGETS_PATH:-data/targets}

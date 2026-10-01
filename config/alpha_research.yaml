@@ -1,0 +1,178 @@
+# =============================================================================
+# xauusd-quant - predictive feature research (Prompt #8)
+# =============================================================================
+# Does feature_t carry information about outcome_{t+h} that is causal,
+# distinguishable from noise, stable through time, robust to its parameters,
+# not a copy of another feature, and cheap enough to compute live?
+#
+# Every number below was fixed before any feature was scored. Nothing is
+# chosen by an outcome, and nothing here is a trade: no PnL, no costs, no
+# positions. Simple linear / logistic fits appear only as diagnostics of
+# incremental information.
+# =============================================================================
+
+schema_version: "1.0.0"
+seed: 20260930
+
+ic:
+  min_observations: 2000                 # pairs below which an IC is not reported
+  min_year_observations: 500             # ... per calendar year
+  min_quarter_observations: 250          # ... per calendar quarter
+  recent_start: "2021-01-01"             # "recent history" for Rule 7
+  eras: 3                                # equal chronological thirds of each feature's span
+  headline: spearman                     # rank IC leads (heavy tails); Pearson beside it
+  hac_lag_months: 2                      # Newey-West over the monthly batch sums (Bartlett)
+
+decay:
+  marginal_lags: [1, 2, 3, 5, 10, 20, 50]   # corr(x_t, y_{t+k}) of one-bar outcomes k bars ahead
+  zero_z: 2.0                            # |IC| / SE below this = indistinguishable from zero
+  min_fit_points: 4                      # an exponential is fitted only on >= this many decaying points
+
+rolling:
+  window_months: 24                      # trailing window of the causal rolling IC
+  min_months: 12
+
+conditioning:
+  volatility_feature: log_rv_20          # quartiles with causal (expanding, quarterly) edges
+  volatility_buckets: 4
+  regime_thresholds: [0.5, 0.8]          # P(S_t = k) above these (descriptive only)
+  intraday: [hour, session, weekday]
+  target_families: [return, abs_return, residual_reduction]
+  horizons: [1, 5, 20]
+
+mutual_information:
+  bins: 20                               # copula (rank) histogram per axis
+  target_families: [return, abs_return, realized_vol, residual_reduction]
+  horizons: [1, 5, 20]
+  null_shifts: 20                        # circular shifts of the target
+  null_permutations: 10
+  conditional_on_volatility: true        # I(X; Y | volatility quartile)
+  feature_pairs_sample_rows: 100000      # MI between features (non-monotone redundancy)
+
+redundancy:
+  sample_rows: 200000                    # evenly spaced rows (estimates)
+  cluster_abs_corr: 0.9                  # hierarchical clusters cut at 1 - |rho| = 0.1
+  graph_abs_corr: 0.7                    # edges of the redundancy graph
+  linkage: average
+  nonmonotone_nmi: 0.5                   # normalised MI above this with |rho| < 0.7: a hidden duplicate
+
+deciles:
+  quantiles: 10
+  target_families: [return, abs_return, realized_vol, residual_reduction, residual_shrinks]
+  horizons: [1, 5, 20]
+
+nulls:
+  circular_shifts: 200                   # target shifted by a random 10-90 % of the sample
+  min_shift_fraction: 0.1
+  permutations: 20                       # target rows permuted (destroys autocorrelation too)
+  null_quantile: 0.99                    # |IC| must exceed this quantile of the circular-shift null
+  time_shift_days: [5, 60]               # deliberately wrong alignments (target moved by days)
+  synthetic:
+    white: 10                            # N(0, 1) features
+    ar1: [0.9, 0.99, 0.999]              # persistent noise, 10 features each
+    ar1_per_phi: 10
+    matched_marginal: 10                 # real feature values in AR(1)-noise rank order
+  pipeline: [random_walk, shuffled_returns, sign_flip, block_bootstrap_1024]
+  pipeline_families: [returns, volatility, autocorrelation, regression, ou, fft, wavelet]
+  # The information-free pipeline nulls: a feature whose IC is reproduced on
+  # these is a mechanical artefact of its construction (e.g. a detrended
+  # residual "reverting" on a random walk).
+  #   random_walk, shuffled_returns - no dependence at all: veto every kind;
+  #   sign_flip - the real bars with random signs, a martingale with the real
+  #     volatility path: vetoes direction and residual claims only (it keeps
+  #     every magnitude / volatility effect by construction);
+  #   block_bootstrap_1024 - keeps every dependence shorter than a block, i.e.
+  #     nearly all short-horizon predictability: reported, never a veto.
+  pipeline_veto: [random_walk, shuffled_returns]
+  pipeline_sign_veto: [sign_flip]
+  veto_share: 0.5                        # a null reproducing >= half the real IC (same sign) ...
+  veto_null_z: 2.0                       # ... and itself distinguishable from zero, vetoes it
+  slow_component_ratio: 0.5              # |IC at +60 d| / |IC| above this: a slow level, not a forecast
+
+multiple_testing:
+  fdr_q: 0.05                            # Benjamini-Hochberg within each test family
+  bonferroni_alpha: 0.05                 # reference only
+
+interactions:
+  folds: 4                               # chronological blocks (the Prompt #6 folds)
+  ridge: 1.0
+  max_rows: 400000
+  target_families: [return, abs_return, residual_reduction]
+  horizons: [1, 5, 20]
+
+classification:
+  # A status is the conjunction of several documented conditions; the reason
+  # string of every feature lists which held and which failed.
+  min_abs_rank_ic: 0.02                  # effect-size floor for "candidate"
+  strong_abs_rank_ic: 0.05
+  candidate_sign_years: 0.65             # share of years with the pooled IC's sign
+  strong_sign_years: 0.8
+  max_redundancy_rho: 0.9                # |rho| with a better representative -> "redundant"
+
+cost:
+  sample_bars: 20000                     # bars per family timing run
+  live_updates: 100                      # timed single-bar updates from a minimum buffer
+  cheap_ms: 0.5                          # per live update
+  expensive_ms: 10.0
+
+plots:
+  enabled: true
+  top_features: 12
+
+ledger:
+  # shared with the spectral / wavelet / regime layers; every ALPHA-H test is upserted
+  path: ${XAUUSD_RESEARCH_LEDGER:-results/research_ledger.parquet}
+
+# -----------------------------------------------------------------------------
+# Preregistered hypotheses (written before any Prompt #8 statistic existed;
+# drawn from the findings of Prompts #2-#7). A test whose feature, target
+# family and horizon match one of these is recorded as "preregistered"; every
+# other test of the grid is an exploratory screen and is recorded as such.
+# `expected` is what the earlier layers predict - a hypothesis can fail.
+# -----------------------------------------------------------------------------
+preregistered:
+  - id: ALPHA-PR-01
+    claim: "Trailing volatility predicts future realized volatility and absolute returns (volatility clustering)."
+    features: ["log_rv_*", "log_ewma_vol_*", "log_parkinson_*", "log_garman_klass_*"]
+    target_families: [realized_vol, abs_return]
+    expected: "positive rank IC at every horizon, beyond every null, in every era"
+  - id: ALPHA-PR-02
+    claim: "No price-derived feature predicts the direction of future returns beyond the nulls in a stable way."
+    features: ["ret_*", "acf_*", "reg_*", "ou_*", "fft_*", "wav_*", "regime_*"]
+    target_families: [return]
+    expected: "failed_null or unstable (the 2003-2007 quote noise gives a negative lag-1 IC that does not survive the era split)"
+  - id: ALPHA-PR-03
+    claim: "The regression residual's position predicts its own reduction only as much as on a detrended random walk."
+    features: ["reg_resid_z_*", "reg_resid_vol_*"]
+    target_families: [residual_change, residual_reduction, residual_shrinks]
+    expected: "large rank IC that is matched by the random-walk pipeline null (invariant 9): failed_null"
+  - id: ALPHA-PR-04
+    claim: "OU speed features (half-life, theta) carry no information about residual targets beyond the pipeline nulls."
+    features: ["ou_log_half_life_*", "ou_theta_*", "ou_b_*", "ou_decay_ratio*"]
+    target_families: [residual_change, residual_reduction, residual_shrinks, ou_deviation_reduction]
+    expected: "failed_null or weak (Prompt #4: the fitted speeds resemble the random walk's)"
+  - id: ALPHA-PR-05
+    claim: "The |OU innovation| spectrum (15m-1h) carries the daily volatility cycle."
+    features: ["fft_abs_eta_*"]
+    target_families: [realized_vol, abs_return]
+    expected: "beyond the nulls, but redundant with time-of-day features"
+  - id: ALPHA-PR-06
+    claim: "FFT / wavelet shape features add nothing about future volatility beyond volatility level and time of day."
+    features: ["fft_entropy_*", "fft_high_low_*", "fft_flatness_*", "fft_centroid_*", "wav_entropy_*", "wav_fast_slow_*", "wav_scale_drift_*"]
+    target_families: [realized_vol, abs_return]
+    expected: "weak or redundant (WAVE-P-001)"
+  - id: ALPHA-PR-07
+    claim: "Filtered regime probabilities do not predict return direction; for volatility they proxy the volatility level."
+    features: ["regime_*"]
+    target_families: [return, realized_vol, abs_return]
+    expected: "failed_null for direction, redundant for volatility (Prompt #7 increments <= 0.001)"
+  - id: ALPHA-PR-08
+    claim: "Time of day predicts future realized volatility (the intraday cycle)."
+    features: ["tod_*", "session_*"]
+    target_families: [realized_vol, abs_return]
+    expected: "beyond the nulls at every timeframe below one day"
+  - id: ALPHA-PR-09
+    claim: "Spread and quote activity carry information about future volatility."
+    features: ["spread_*", "log_tick_count", "activity_*"]
+    target_families: [realized_vol, abs_return]
+    expected: "beyond the nulls; partly redundant with volatility level"

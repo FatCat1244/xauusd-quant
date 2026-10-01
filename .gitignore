@@ -1,0 +1,70 @@
+# ---------------------------------------------------------------------------
+# Data: NEVER commit market data. The raw dataset is ~34 GB and processed
+# Parquet output is several GB. All of it is reproducible from the raw source.
+# ---------------------------------------------------------------------------
+data/**
+!data/.gitkeep
+!data/raw/
+!data/raw/.gitkeep
+!data/raw/README.md
+!data/parquet/
+!data/parquet/.gitkeep
+!data/bars/
+!data/bars/.gitkeep
+!data/metadata/
+!data/metadata/.gitkeep
+
+# Raw-data formats, wherever they land
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.zip
+*.gz
+*.7z
+
+# Logs
+logs/
+*.log
+
+# Research output
+results/*
+!results/.gitkeep
+experiments/*
+!experiments/.gitkeep
+notebooks/*
+!notebooks/.gitkeep
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+.venv/
+venv/
+env/
+.python-version
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Environment / secrets
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
