@@ -2,8 +2,9 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Thirteen layers: nine descriptive, two predictive, offline execution and
-offline chronological strategy validation. Forecast contracts remain prediction-only:
+Thirteen layers plus a bounded econometric extension: nine descriptive,
+two predictive, offline execution and offline chronological strategy validation.
+Forecast contracts remain prediction-only:
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
@@ -58,7 +59,7 @@ offline chronological strategy validation. Forecast contracts remain prediction-
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
-> **Prompts #12-#13 authorize offline backtesting and validation only.** The separate execution
+> **Prompts #12-#13.5 authorize offline research, backtesting and validation only.** The separate execution
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
 > remain probabilities and expected values; broker connectivity, demo/live trading
@@ -2580,6 +2581,25 @@ results never select a winner. Null/specification gates remain blocking.
 The short representative plans cannot satisfy minimum evidence by design.
 No prospective-profitability claim or live trading is authorized.
 
+## Stage #13.5: bounded econometrics and forecast uncertainty
+
+Fixed ARX, GARCH(1,1), intraday HAR-style and causal local-level benchmarks use
+permitted preceding fits and separate regular-grid return/variance targets.
+Delayed residual prediction intervals and a bounded CUSUM emit uncertainty and
+health records; they do not establish mean-confidence bounds or change strategies.
+Read [interfaces, assumptions and actual studies](docs/stage13_5_econometrics.md).
+The 5m/15m plans are small retrospective diagnostics; matching pipeline null and
+verified execution evidence remain prerequisites for promotion/economics.
+
+```powershell
+xq econometric-plan --plan config/econometrics.yaml
+xq econometric-readiness --plan config/econometrics.yaml --run-id ECON_READY_5M_V001
+xq econometric-smoke --plan config/econometrics.yaml --run-id ECON_SMOKE_5M_V001
+xq econometric-evaluate --plan config/econometrics.yaml --run-id ECON_5M_DIAGNOSTIC_V001
+```
+
+Stop before Stage #14. No broker, demo/live trading or deployment.
+
 ## Non-goals
 
 The list below records the historical Stages #1-#11 scope. Stage #12 now
@@ -2796,3 +2816,12 @@ deprecation in our own code fails the suite rather than accumulating quietly.
 - Explicit errors with actionable messages.
 - Logging reports progress and aggregates — never per-tick lines. A full
   34 GB conversion produces a few hundred log lines.
+
+
+Stage #13.5 bounded checks completed on June 1, 2021 development data: 260/77
+matched 5m/15m observations per forecast, 51 recorded attempts each. All new
+model verdicts remain INCONCLUSIVE; economic comparisons blocked. Targeted
+verification: 271 tests passed, 36 deliberately broken leakage guards detected,
+Ruff/mypy clean. See [actual findings and limitations](docs/stage13_5_econometrics.md#executed-bounded-findings-2026-10-04)
+and WORKLOG.md for measurements, negative comparisons and the preserved fixture
+access audit. This is retrospective evidence, not a validated trading edge.

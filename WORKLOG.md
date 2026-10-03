@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Next stage | Stage #13 offline validation framework; null/specification and evidence gates remain blocking; stop before #14 |
+| Current extension | Stage #13.5 bounded econometric benchmarks and uncertainty; offline only; null/provenance/specification gates remain blocking; stop before #14 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -1797,3 +1797,198 @@ Changed files (23 source/config/documentation/test files):
   tests/test_strategy_execution.py, tests/test_strategy_framework.py,
   tests/test_strategy_source.py.
 - scripts/check_strategy_guards.py.
+
+
+## 2026-10-04 - Stage #13.5 bounded econometrics, causal state and uncertainty
+
+Completed the explicitly authorized offline extension. No broker/demo/live
+connection or order, deployment, commit, push or Stage #14 progression.
+Initially clean main at 45ff2fd; inspected working tree, AGENTS.md, CLAUDE.md,
+README/WORKLOG, stages 9-13 code/config/reports, data manifests, frozen/fitted
+artifacts, source APIs and existing diagnostics before editing. No research
+process was running and no cache-stamped ML/selection/regime module was edited.
+
+Implemented `xauusd_quant.econometrics` (11 modules). Reused Stage 13 label
+purge, chronological inner count selection for its ridge reference, TrialLedger,
+bounded guarded bar source and readiness; Stage 12 immutable records, code
+identities, resource measurement and timestamp/reserved-period semantics.
+Existing ADF/KPSS, Ljung-Box, ARCH-LM and detrended-random-walk routines reused.
+New public `BarDevelopmentSource.completed_bars` wraps that existing bounded
+reader. Forecast contracts and the execution engine were not changed.
+
+Fixed ARX (r1, r2, prior volatility12) with segmented Bartlett HAC; constrained
+zero-mean Gaussian quasi-MLE GARCH(1,1), explicit convergence/variance failures;
+nonnegative arithmetic-level HAR-style variance1/3/12; prior-only Gaussian
+local log-level Kalman MLE/filter with Joseph covariance and gap resets.
+Zero return, aligned fold-local Stage 13 ridge, rolling12 and EWMA0.94 remain
+benchmarks. No coefficient is claimed causal and filtered level is not fair value.
+GARCH h-step forecasts sum expected variances under stated zero-mean assumptions;
+HAR uses intraday contiguous grid windows, not purported daily components.
+No logarithmic variance retransformation or silent favorable fallback.
+
+Return target is future h-grid log midpoint return; variance target is the sum
+of future h contiguous grid squared returns. No gap interpolation or return
+across closures; 12-return features require 13 closes. Bar opening timestamps,
+bar-close availability and computation/publication delays explicit. Stored
+broker-local times use the existing New York +7h DST convention. Statistical
+midpoints do not replace executable Bid/Ask in economics. Training-only quote
+noise signature diagnostics are descriptive, not proof of microstructure noise.
+
+Separate rolling residual and clipped ACI-inspired prediction intervals on
+ARX/ridge: preceding 128 matured errors, minimum 32, nominal 80%, gamma0/.01.
+Strict outcome maturity plus monotonic update/decision clocks, bounded pending
+state and explicit missing/outcome censoring. Exact serialized reload and batch
+carry. Intervals concern outcomes, not confidence bounds on expected profit.
+No exchangeability guarantee for dependent data. Two-sided bounded CUSUM on
+preceding-scale standardized matured ARX errors is health only; drift 0.5 / threshold 8,
+no strategy change, risk rule or evaluation-driven retraining.
+
+Frozen plans ECONOMETRICS_5M_V001 / ECONOMETRICS_15M_V001 registered before June
+extension outcome inspection. Plan-file SHA256:
+- 5m: 9fba86e897c38bf2bfbe614c15e61fe07dbc45c0f632b5b554ad9960bf024856
+- 15m: fec05fbb8d4b3a8241ec763896a7b5f379348d5ef3baf85259c2290862b46395
+Eight model/benchmark fits + four wrappers + monitor per fold, twelve ridge
+inner fits: 51 attempts per path within 64. May expanding fit; preceding 24h
+calibration; three June 1 UTC eight-hour outer folds. Inner May 13/20 exclusively
+prior. No added-model search, economic policy or parameter expansion. Cap 20,000
+bars/scan, 240 sec/path, checked 1 GiB own-private memory, optimizer 200 iterations.
+15m followed 5m saved-record/resource checks regardless of outcome sign.
+
+Data metadata actually audited: ticks-2e173ef8e61bd240, 281 monthly partitions,
+729,244,369 footer rows, broker-local 2003-05-05 03:01:03.421 through
+2026-09-18 23:59:59.079; manifest SHA256
+da8d0bfe17a33ca95080e872ac98f8474721616309234e29ce339e2236f4318c.
+Raw CSV exists at 36,233,955,746 bytes, unchanged. Footer/config/path/identity
+checks passed; full-content and raw hashes were not independently recomputed.
+Actual frozen/fitted/feature manifests and final-test access logs inventoried.
+Old global feature identities/counts and ensemble outcome-dependent universes
+remain invalid for earlier fold-local reuse. 2022+ was already inspected; no
+new reserved evaluation or bypass. This is not the old 2003-2004 partial dataset.
+
+Audit incident preserved: an initial missing-input test changed project_root
+but retained absolute real paths. A software-classified run without SyntheticBars
+therefore evaluated May 4 2021 development data before its intended input error.
+34 attempts, 19 completed/15 failed. Original records copied verbatim to
+results/econometrics/audits/UNINTENDED_REAL_FIXTURE_V001, with separate
+ACCESS_AUDIT.json and ORIGINAL_PLAN.json, hashes and explicit incorrect original
+classification. No reserved access. No candidate specification changed from
+those outcomes. Software correctness now requires an explicit synthetic reader
+before even metadata access; its mutation regression uses forbidden metadata
+and cannot repeat real reads. Original records were not rewritten as clean evidence.
+
+Bounded runs executed:
+- ECON_READY_5M_V001: expected exit1. Data/fold-local path/history gates passed;
+  matching null evidence, audited promotion identity and supplied execution terms
+  unknown. No model fits or outcome-value study in this readiness-only run.
+- ECON_SMOKE_5M_V001: 51/51 completed, zero failed models. Wall 21.0563891 sec,
+  CPU 18.546875 sec, peak working set 270,352,384 bytes, private 763,867,136 bytes.
+- ECON_5M_DIAGNOSTIC_V001: 51/51 completed, zero failed/rejected forecasts,
+  260 scored observations/model, folds 95/95/70; censored 1/1/2 per model.
+  Wall 12.8210345 sec / CPU 12.640625 sec, peak working set 278,241,280 bytes,
+  private 824,905,728 bytes. June 1 only; gaps/feature warm-up reduce coverage.
+- ECON_15M_DIAGNOSTIC_V001: 51/51 completed, zero failed/rejected forecasts,
+  77 scored observations/model, folds 26/31/20; censored 1/1/1 per model.
+  Wall 16.2982309 sec / CPU 5.734375 sec, peak working set 255,897,600 bytes,
+  private 793,100,288 bytes. These are measured Windows own-process values;
+  no invented memory guarantee or concurrent heavy runs.
+
+Matched forecast effect sizes (positive = loss reduction):
+
+| Candidate/benchmark | 5m | 15m |
+| --- | ---: | ---: |
+| ARX/zero, relative MSE | -1.3198% | -4.1167% |
+| ARX/aligned ridge, relative MSE | +0.1426% | -0.2998% |
+| Kalman/zero, relative MSE | -0.7563% | -2.1588% |
+| Kalman/aligned ridge, relative MSE | +0.6979% | +1.5864% |
+| GARCH/rolling, absolute QLIKE | +0.02046 | +0.29499 |
+| GARCH/EWMA, absolute QLIKE | +0.08268 | +0.11594 |
+| HAR/rolling, absolute QLIKE | -0.18568 | +0.17974 |
+| HAR/EWMA, absolute QLIKE | -0.12347 | +0.00070 |
+
+All four additions: INCONCLUSIVE with promotion blocked. Keep ARX/GARCH/HAR as
+interpretable benchmarks and Kalman as a causal state/forecast benchmark.
+GARCH favorable aggregate variance loss is not stable superiority (rolling
+comparison positive in 1/3 5m and 2/3 15m folds). Negative return/HAR findings
+preserved. One evaluation day is below frozen 5-day inference minimum, and 77
+15m rows below 200. No bootstrap interval or decorative DM/multiple-testing
+statistic, Sharpe, annualization or economic superiority assertion. Full fold
+loss effects/coefficient stability persist. Simple moving-block uncertainty
+implemented for eligible larger declared studies, conditional on fitted forecasts;
+not a bootstrap of the whole discovery process. No such larger study executed.
+
+Uncertainty evidence INCONCLUSIVE; role = calibration diagnostic. ARX rolling/
+adaptive empirical coverage 76.15%/79.23% at 5m and 75.32%/77.92% at 15m;
+log-return mean widths .0009359/.0010459 and .0014544/.0015884. Nominal 80%.
+Aligned ridge coverage 75.77%/79.23% and75.32%/76.62%. Wider adaptive intervals
+are not proof of superiority. Per-fold variation retained (15m ARX rolling
+76.92%/61.29%/95.00%). CUSUM role = health diagnostic, market evidence INCONCLUSIVE:
+four/one outer-forecast alarms. Fixed 500-observation unchanged Gaussian control
+zero alarms; +3 sigma shift first detected after 3 matured updates. No measured
+market false-alarm rate or automatic action. Existing detrended-RW nulls preserved.
+
+Economics BLOCKED BY MISSING INPUTS OR EVIDENCE, no new economic candidate
+registered/evaluated. Original Stage 13 frozen baseline preserved. Required
+matching prior-only random-walk/sign-flip evidence, audit-file identities and
+verified supplied execution assumptions absent. Adequate coverage and those
+forecast gates require a new frozen design before any expanded study. Legacy
+boosted/ensemble reuse additionally needs feature identities/counts, preprocessing,
+tuning/calibration and universe/null/correlation/weight choices reconstructed
+within each actual preceding fold. Earlier research/economics claims were not
+reproduced. Historical reconstruction remains retrospective, not prospective.
+
+Known historical ledger after this extension: 268 attempts, 217 completed, 51 failed
+(132 Stage 13 + 34 incident + 102 declared real econometric). Actual prior counts
+before real runs 166/217. Both plans froze before 5m, so immutable 15m manifest
+retains registration count 166; FINAL_VERIFICATION_V001.json records actual 217
+without rewriting it. Synthetic smoke 51 attempts separate. Older searches unknown.
+
+Commands actually run (CLI via `.venv\Scripts\python.exe -m xauusd_quant.cli`):
+- `econometric-plan --plan config/econometrics.yaml`, and 15m counterpart.
+- `econometric-readiness --plan config/econometrics.yaml --run-id ECON_READY_5M_V001`.
+- `econometric-smoke --plan config/econometrics.yaml --run-id ECON_SMOKE_5M_V001`.
+- `econometric-evaluate --plan config/econometrics.yaml --run-id ECON_5M_DIAGNOSTIC_V001`.
+- `econometric-evaluate --plan config/econometrics_15m.yaml --run-id ECON_15M_DIAGNOSTIC_V001`.
+- `.venv\Scripts\python.exe -m pytest tests/test_econometric_models.py
+  tests/test_econometric_state.py tests/test_econometric_uncertainty.py
+  tests/test_econometric_framework.py tests/test_econometric_source.py
+  tests/test_strategy_chronology.py tests/test_strategy_execution.py
+  tests/test_strategy_framework.py tests/test_strategy_source.py
+  tests/test_execution_engine.py tests/test_execution_readiness.py
+  tests/test_execution_io.py tests/test_stage12_audit_repairs.py
+  tests/test_feature_store.py tests/test_final_test_isolation.py
+  tests/test_ensemble_final_test.py tests/test_prediction_contract.py
+  tests/test_stationarity.py tests/test_autocorrelation.py -q -p no:cacheprovider`:
+  **271 passed in 33.44 sec**. 35 new econometric tests; synthetic white-noise/AR,
+  conditional variance, drift, shifts/RW/delayed outcomes. Earlier pre-change
+  Stage 12/13 focused suite 186 passed in 18.16 sec. No full suite/research pipeline.
+- `.venv\Scripts\python.exe scripts/check_econometric_guards.py --output
+  results/econometrics/GUARD_MUTATIONS_V001.json`: 35 broken guards detected.
+  Same command with V002: all 36 detected, includes new calibration update-clock
+  guard plus prior 26 Stage 12/13 guards. Isolated copies; original source unchanged.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:clean.
+  `.venv\Scripts\python.exe -m mypy src`:clean, 219 source files.
+- Read-only temporary `_verify_econometric_runs.py` wrote immutable
+  FIVE_MINUTE_CHECK_V001.json (before 15m) and FINAL_VERIFICATION_V001.json:
+  72 frozen fits, 162 reloadable states, 18,688 raw forecasts, 4,976 scored records
+  across smoke and two real runs. Verified prior fit labels/parameters, calibration
+  maturation/update clocks, availability/target alignment, spec hashes, duplicate
+  exclusion, exact state reload, terminal trial records, checked budgets and
+  blocked promotion/economics. Passed. No new outcomes read.
+
+Outputs are local ignored results/econometrics/plans, runs, audits, mutation and
+verification sidecars; never overwrote existing research files or data. Temporary
+editing/verification helpers removed after use. Relevant source line endings and
+UTF-8 without BOM preserved. Dependency APIs verified (SciPy 1.18.1,
+statsmodels 0.15.0); no new dependency, no arch package required.
+
+Changed files (27 source/config/documentation/test files):
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md, docs/stage13_5_econometrics.md.
+- config/econometrics.yaml, config/econometrics_15m.yaml.
+- src/xauusd_quant/cli.py, src/xauusd_quant/strategy_validation/source.py.
+- src/xauusd_quant/econometrics/__init__.py, plan.py, data.py, diagnostics.py,
+  regression.py, volatility.py, state_space.py, uncertainty.py, monitor.py,
+  comparison.py, runs.py (11 modules in that new package).
+- tests/econometric_synth.py, tests/test_econometric_models.py,
+  tests/test_econometric_state.py, tests/test_econometric_uncertainty.py,
+  tests/test_econometric_framework.py, tests/test_econometric_source.py.
+- scripts/check_econometric_guards.py.

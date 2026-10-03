@@ -127,6 +127,10 @@ class BarDevelopmentSource:
             raise ValueError("bar clock must be strictly chronological")
         return opens, prices
 
+    def completed_bars(self, start: datetime, cutoff: datetime) -> tuple[list[datetime], list[float]]:
+        """Bounded public midpoint input; opening times UTC, closes strictly before cutoff."""
+        return self._bars(start, cutoff)
+
     def training(self, start: datetime, cutoff: datetime) -> list[TrainingRow]:
         opens, closes = self._bars(start, cutoff)
         rows = features(opens, closes, self.execution.bar_seconds)

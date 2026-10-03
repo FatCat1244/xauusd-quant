@@ -727,6 +727,13 @@ def build_parser() -> argparse.ArgumentParser:
             p_strategy.add_argument("--historical-diagnostic", action="store_true",
                                     help="record unresolved gates; diagnostics cannot be promoted")
 
+    for command in ("econometric-plan", "econometric-readiness", "econometric-smoke", "econometric-evaluate"):
+        p_econ = sub.add_parser(command, help="Stage 13.5 bounded offline econometric research")
+        p_econ.add_argument("--plan", type=Path, default=None)
+        p_econ.add_argument("--execution-config", type=Path, default=None)
+        if command != "econometric-plan":
+            p_econ.add_argument("--run-id", required=True)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3562,6 +3569,12 @@ def cmd_strategy_validation(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_econometrics(config: Config, args: argparse.Namespace) -> int:
+    """Lazy Stage 13.5 entry; offline diagnostics, unchanged prediction contracts."""
+    from .econometrics.runs import cli_command
+    return cli_command(config, args)
+
+
 COMMANDS = {
     "info": cmd_info,
     "inspect": cmd_inspect,
@@ -3603,6 +3616,10 @@ COMMANDS = {
     "ensemble-freeze": cmd_ensemble_freeze,
     "ensemble-finalize": cmd_ensemble_finalize,
     "ensemble-final-test": cmd_ensemble_final_test,
+    "econometric-plan": cmd_econometrics,
+    "econometric-readiness": cmd_econometrics,
+    "econometric-smoke": cmd_econometrics,
+    "econometric-evaluate": cmd_econometrics,
     "strategy-plan": cmd_strategy_validation,
     "strategy-readiness": cmd_strategy_validation,
     "strategy-smoke": cmd_strategy_validation,

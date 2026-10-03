@@ -2,6 +2,18 @@
 
 ## Scope discipline
 
+**Stage #13.5 authorization (2026-10-04):** Prompt #13.5 authorizes a bounded
+offline econometric extension: fixed ARX/GARCH/HAR-style/local-level benchmarks,
+causal filtered state, matured-residual outcome intervals and a health-only
+CUSUM. Reuse Stage #13 fit/split/ledger and guarded sources. Every target,
+transformation and available time is explicit; no selection by outer outcomes.
+Forecast superiority is separate from economics. Existing null/provenance/
+execution-specification gates and final-test guards remain; 2022+ is inspected.
+No broker/demo/live/deployment, commit/push or Stage #14. Details in
+`docs/stage13_5_econometrics.md`. Earlier stage stopping rules are superseded
+only to permit this extension; historical limitations remain.
+
+
 **Stage #13 authorization (2026-10-03):** Prompt #13 authorizes offline
 purged nested strategy validation and after-cost robustness using Stage #12.
 A new small fold-local return model path may select features/counts only
