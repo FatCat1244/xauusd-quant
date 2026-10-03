@@ -454,6 +454,18 @@ class ExecutionEngine:
                 self.record("equity", mark)
                 self.last_equity_record = stamp
 
+    def checkpoint(self, at_utc: datetime) -> dict[str, Any]:
+        """Left-boundary observation: advance clocks without ending/resetting the run.
+
+        Events at the boundary belong to the following interval. Forecasts exactly
+        at it wait for their bar-close/input events; positions and pending orders carry.
+        """
+        at = utc_time(at_utc)
+        self._advance(at, inclusive=False)
+        mark = self.mark(at)
+        self.record("equity", mark)
+        return mark
+
     def finish(self, end_utc: datetime) -> dict[str, Any]:
         """Declared cutoff: no future quote is read and no earlier quote becomes a fill."""
         end = utc_time(end_utc)

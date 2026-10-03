@@ -2,8 +2,8 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Twelve layers: nine descriptive, two predictive, and explicitly authorized
-offline execution research. Forecast contracts remain prediction-only:
+Thirteen layers: nine descriptive, two predictive, offline execution and
+offline chronological strategy validation. Forecast contracts remain prediction-only:
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
@@ -50,10 +50,15 @@ offline execution research. Forecast contracts remain prediction-only:
     simulation, a fixed separate policy, costs, accounting and readiness gates.
     No broker access or live trading.
 
+13. **Purged strategy validation** - registered small experiment families,
+    fold-local feature/model selection, continuous tick execution, fixed
+    benchmarks, robustness and evidence verdicts. Retrospective reconstruction
+    is distinguished from prospective evidence; stop before Stage #14.
+
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
-> **Prompt #12 authorizes offline backtesting only.** The separate execution
+> **Prompts #12-#13 authorize offline backtesting and validation only.** The separate execution
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
 > remain probabilities and expected values; broker connectivity, demo/live trading
@@ -143,7 +148,7 @@ Raw XAUUSD tick CSV (34 GB, read-only)
 
 Stage #12 applies declared execution costs in an offline simulator. Current
 scientific evidence and unknown broker terms prevent a tradable-edge conclusion.
-No broker connectivity or demo/live trading is implemented. Stop before #13.
+No broker connectivity or demo/live trading is implemented. Stop before #14.
 
 ## Installation
 
@@ -2563,6 +2568,17 @@ Historical feature-selection and ensemble results are retained: their global
 adaptive choices prevent promoting the existing 2011-2021 scores as clean
 out-of-sample evidence. 2022+ was already inspected; no fresh final test is
 claimed. Broker access, demo/live trading and deployment remain prohibited.
+
+## Stage #13: purged strategy validation
+
+See [Stage #13 interfaces and evidence](docs/stage13_strategy_validation.md).
+A small new causal return path performs nested feature selection/count
+selection and fitting without reusing globally selected historical universes.
+Execution carries positions/cash continuously across folds. Every fixed
+threshold, cost/latency/spread scenario and benchmark is recorded; outer
+results never select a winner. Null/specification gates remain blocking.
+The short representative plans cannot satisfy minimum evidence by design.
+No prospective-profitability claim or live trading is authorized.
 
 ## Non-goals
 

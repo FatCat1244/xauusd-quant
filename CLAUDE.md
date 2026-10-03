@@ -2,6 +2,16 @@
 
 ## Scope discipline
 
+**Stage #13 authorization (2026-10-03):** Prompt #13 authorizes offline
+purged nested strategy validation and after-cost robustness using Stage #12.
+A new small fold-local return model path may select features/counts only
+inside preceding inner data. Fixed policy neighbors are reported together,
+never chosen by outer PnL. This supersedes the earlier stop-before-#13 rule.
+No broker, MT5, demo/live trading, deployment or automatic Stage #14.
+Historical reconstruction remains retrospective; 2022+ is inspected and
+reserved readers/attempt guards remain unchanged. Missing null/specification
+evidence blocks promotion. See `docs/stage13_strategy_validation.md`.
+
 **Stage #12 authorization (2026-10-03):** Prompt #12 explicitly permits an
 offline execution and trading-economics layer, including a separate fixed
 decision policy, market-order simulation, position accounting, costs, PnL

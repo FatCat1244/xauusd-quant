@@ -6,7 +6,7 @@ This repository is a research codebase for XAUUSD (gold) tick data. Read
 the short version for an agent asked to draft or review a piece of it. Where
 the two differ, `CLAUDE.md` wins.
 
-## Scope - research forecasts and authorized offline Stage #12
+## Scope - research forecasts and authorized offline Stages #12-#13
 
 - Allowed outputs: descriptive statistics, research tables, probabilities,
   expected values, calibrations, uncertainty proxies.
@@ -15,8 +15,10 @@ the two differ, `CLAUDE.md` wins.
   ML and ensemble prediction contracts remain forecasts only. No model,
   feature set or policy variant is selected by trading performance.
 - Broker/MT5 connectivity, demo/live trading, deployment and neural networks
-  remain prohibited. Stop at Stage #12. Historical 2022+ outcomes have already
-  been inspected; Stage #12 development execution commands refuse 2022+.
+  remain prohibited. Prompt #13 authorizes offline nested strategy validation,
+  small prespecified policy families, historical diagnostics and robustness.
+  Stop before Stage #14. Historical 2022+ outcomes have already been inspected;
+  Stage #12/#13 execution and validation commands refuse reserved access.
 
 ## Invariants you must not break
 

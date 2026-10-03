@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Next stage | Stage #12 offline engine implemented; economic promotion blocked by chronology, untouched-period evidence and broker specifications; stop before #13 |
+| Next stage | Stage #13 offline validation framework; null/specification and evidence gates remain blocking; stop before #14 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -1611,3 +1611,189 @@ tests/test_execution_io.py -q -p no:cacheprovider`: **9 passed in 1.31 s**.
 All unchanged source lines retained their exact original bytes/line endings.
 `git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 diff --check` passed (CRLF is intentional). Final ruff and mypy checks clean.
+
+
+## 2026-10-03 - Stage #13 offline strategy-validation framework
+
+Prompt #13 explicitly authorizes this offline stage and supersedes the previous
+stop-before-13 boundary. Stop before Stage #14. No broker/MT5, demo/live orders,
+deployment, commit or push occurred. Initial working tree was clean at
+b9d4596c9abe76f6c808454a713a16f6924e5147; no research process was running. Read
+AGENTS.md, CLAUDE.md, this log, README and Stage #12 implementation, configuration,
+tests, frozen/spec/artifact inventory, actual manifests and reports first. Reran
+Stage #12's eight relevant test files: 154 passed in 17.12 s. Its streaming
+execution, costs, availability, accounting, immutable outputs and readiness gates
+were verified; previous economic/scientific restrictions were not waived.
+
+Implemented software (details and runnable interfaces in docs/stage13_strategy_validation.md):
+- Versioned immutable experiment plans; small prespecified ridge/historical-mean
+  family, constant sizing, policy neighbors, four execution scenarios and two
+  controls. Register all 24 economic variants before reading evaluation values;
+  20 nested fitting attempts plus 24 economic attempts, budget 64 per design.
+- New restricted 5m/15m expected future log mid-return path. Three causal features
+  from completed bars; training-only identity selection, inner chronological count
+  selection, fitted scaling and fixed ridge penalty. Actual label intervals and
+  publication are strictly before every fit cutoff. No globally selected Stage
+  #9 identities/counts or Stage #11 ensemble universe is reused. External adaptive
+  provenance still needs preceding evidence, including ensemble choices/nulls.
+- Bounded lazy development scans apply local/derived UTC predicates and row caps
+  before collecting price values. Feature-only outer interfaces never attach
+  outcomes. Reserved regression/final-test guards remain intact.
+- Separate forecast consumers and fixed sign/abstention policy; prediction
+  contracts unchanged. Same Stage #12 engine for every primary/benchmark/stress
+  trial. Public checkpoint preserves pending orders, positions and cash across
+  folds; no artificial resets, compounding, duplicate positions or boundary exits.
+- Streamed fold specifications, predictions, decisions, orders, fills, positions,
+  costs/equity, fold/aggregate metrics, daily marks and attribution. Trial ledger
+  retains failures; invariant failures abort. Per-run code/config/data/model/policy
+  and assumption identities include uncommitted source hashes.
+- Readiness before evaluation; historical-diagnostic override remains BLOCKED for
+  promotion. Matching frozen-plan/source/data identities and prior pipeline null
+  evidence plus verified broker/account terms are required for a historical pass.
+  Unknown remains unknown. No prospective mode or fresh-test claim.
+- Complete-family verdict, fold variation, cost sensitivity, fixed parameter
+  neighborhood, concentration/removal diagnostics and conditional moving-block
+  bootstrap of complete UTC-day PnL. Fixed five-day blocks, 199 replicates/seed
+  130013, minimum 20 daily observations; no Sharpe/annualization or search correction.
+
+Actual data/provenance: current tick manifest remains ticks-2e173ef8e61bd240, all
+281 monthly files, 729,244,369 footer rows, broker-local 2003-05-05 03:01:03.421
+through 2026-09-18 23:59:59.079. Raw 36,233,955,746-byte input is unchanged.
+Stage #13 checks bar/tick lineage, conventions, configuration identity, actual bar
+partition row counts/sizes and coverage; it does not rehash every historical value.
+This is not the old 2003-2004 partial history. Stage #12's verified 50 primary
+frozen specs, 119 fitted manifests/payloads and 32 feature manifests are present,
+but presence does not make their creation chronology clean. Existing Stage #9-#11
+forecast-accuracy/ensemble claims were not reproduced. Four final-access logs
+remain history; no new 2022+ feature, target or quote evaluation was performed.
+
+Plans and the preserved failed attempt:
+- STRATEGY_5M_RECONSTRUCTION_V001 and STRATEGY_15M_RECONSTRUCTION_V001 were frozen
+  before new Stage #13 economics. The chosen inner dates (May 15/22, 2021) were
+  Saturdays. This avoidable schedule error yielded insufficient training/labels.
+- STRATEGY_5M_DIAGNOSTIC_V001 recorded every one of 44 attempts: 36 failed nested
+  fits/frozen models/candidate executions and eight completed controls. No partial
+  model economics were promoted. Wall 18.0925 s; own-process peak working set
+  128,274,432 bytes and private memory 464,883,712 bytes. 15m V001 was not executed.
+- V002 moves both inner windows back exactly two days to May 13/20 weekdays;
+  models, outer schedule, policies, costs and budget unchanged. Both V002 plans
+  were frozen after V001 control outcomes, before corrected model economics,
+  with supersedes/revision reason and prior attempts. This is a post-attempt
+  revision, not original preregistration; all V001 artifacts remain immutable.
+- V002 plan-file SHA-256: 5m
+  973bd47e2a1ea0c180a95e48254be49ab81c464b64f6e0e871c61d6cf7a1101a;
+  15m a9a2b982667c6b8ba4a12603d164006757e113b3c5ff8bcfece0ebb8e1cda6d4.
+
+Actual bounded historical diagnostics (each sequential; no expansion):
+- Train May 2021; two chronological preceding inner weekdays; contiguous outer
+  folds June 1, 2021 00:00-00:30 and 00:30-01:00 UTC. Each economic trial saw
+  4,707 actual quotes. Fixed 0.01 lots x hypothetical 100 oz/lot = 1 oz; USD
+  account, initial cash USD 10,000, declared continuous financing. Terms and
+  slippage are hypothetical scenarios, not verified Exness execution.
+- STRATEGY_5M_DIAGNOSTIC_V002 and STRATEGY_15M_DIAGNOSTIC_V002 each completed all
+  44 attempts. Every one of the 16 forecast-policy/scenario variants per timeframe
+  had negative marked-equity change. No-trading controls were zero; fixed-seed
+  directional controls were negative, and happened to match historical-mean
+  decisions in this short sample. All variants were retained; no winner chosen.
+
+| Primary zero-threshold / base scenario | Closed trades | Gross executable PnL USD | Commission USD | Financing USD | Net USD | Fold net USD |
+|---|---:|---:|---:|---:|---:|---|
+| 5m ridge | 6 | -2.5430 | 0.3600 | 0.000416 | -2.903416 | -0.805208, -2.098208 |
+| 5m historical mean | 6 | -2.8620 | 0.3600 | 0.000416 | -3.222416 | -2.544208, -0.678208 |
+| 15m ridge | 2 | -1.6970 | 0.1200 | 0.000416 | -1.817416 | -1.610208, -0.207208 |
+| 15m historical mean | 2 | -1.6970 | 0.1200 | 0.000416 | -1.817416 | -1.610208, -0.207208 |
+
+For 5m ridge: 12 submitted/filled legs, six accepted decisions and six rejected
+overlaps. For 15m ridge: four submitted/filled legs, two accepted and two rejected
+overlaps. No base-scenario expiry/unfilled orders or final open exposure. Closed
+spread/slippage components USD 2.1485/0.24 (5m ridge) and 0.6815/0.08 (15m ridge)
+already enter gross executable PnL; subtract only commission and financing from
+that gross. This avoids counting spread/slippage twice. Full forecast-family net
+ranges: 5m [-4.296666, -2.145277], 15m [-2.158166, -1.817416]; these are coverage
+summaries, not a choice of the best variant. Threshold/latency scenarios can change
+trade populations, so aggregate cost sensitivity is not matched-trade inference.
+Detailed turnover, exposure, drawdown and all period/scenario records are saved.
+
+Resource measurements, own Windows process including imports/preflight:
+5m V002 wall 41.7828 s, CPU 42.8906 s, peak working set 132,075,520 bytes (125.96
+MiB), private 471,945,216 bytes, peak commit 474,120,192 bytes. 15m V002 wall
+39.7844 s, CPU 40.4531 s, peak working set 123,465,728 bytes (117.75 MiB), private
+451,510,272 bytes, peak commit 452,636,672 bytes. These bounded measurements are
+not a full-history memory guarantee. Both had zero complete daily observations:
+no numeric uncertainty interval. Two folds and 6/2 trades cannot meet frozen
+minima (three folds, 30 trades, 20 daily observations), even with all gates passed.
+
+Verdict: both candidates BLOCKED at both timeframes. Data metadata, restricted
+fold-local implementation and honest history declaration pass; matching prior
+random-walk/sign-flip pipeline null evidence, verified account/contract/fee terms
+and corresponding evidence identities are unknown. Real runs used the explicit
+historical-diagnostic override, never passing promotion. No validated edge,
+prospective profitability or production readiness is established. The negative
+one-hour sample does not establish full-history rejection either. Before any
+economic conclusion: obtain independently reviewed, plan/pipeline-linked prior
+null evidence and supplied execution specifications, then freeze adequate
+historical coverage in a new version. Reusing old Stage #9-#11 models additionally
+requires a genuine fold-local selection/universe creation path for every adaptive
+choice. 2022+ was inspected before; no period is assumed untouched just because
+new timestamps exist. Older research search counts remain unknown.
+
+Known Stage #13 historical attempts: 132 total, 36 failed and 96 completed,
+chronological prior counts 0/44/88. Synthetic smoke attempts (88) are separate.
+V002 registration records 44 known preceding attempts; the 15m V002 registration
+preceded the 5m V002 run, so its original manifest retains that registration-time
+count. DIAGNOSTIC_SUMMARY_V001.json records the actual 88 attempts before its run
+without editing either immutable plan/manifest.
+
+Commands actually executed (CLI via `.venv\Scripts\python.exe -m xauusd_quant.cli`):
+- `strategy-plan --plan config/strategy_validation.yaml` and the 15m counterpart,
+  for V001 then V002; immutable registration succeeded each time.
+- `strategy-readiness --plan config/strategy_validation.yaml --run-id
+  STRATEGY_READINESS_5M_V001`: exit 1 expected, missing scientific/spec gates.
+- `strategy-smoke --plan config/strategy_validation.yaml --run-id
+  STRATEGY_SMOKE_5M_V001` and 15m counterpart STRATEGY_SMOKE_15M_V001: 44 attempts
+  each, INCONCLUSIVE software evidence. Wall 2.1428/1.0811 s; peak working sets
+  88,928,256/89,169,920 bytes.
+- `strategy-validate --plan config/strategy_validation.yaml --run-id
+  STRATEGY_5M_DIAGNOSTIC_V001 --historical-diagnostic`, then V002, then the 15m
+  config with STRATEGY_15M_DIAGNOSTIC_V002. Expected exit 1: BLOCKED verdicts.
+- `.venv\Scripts\python.exe -m pytest tests/test_strategy_chronology.py
+  tests/test_strategy_execution.py tests/test_strategy_framework.py
+  tests/test_strategy_source.py tests/test_execution_engine.py
+  tests/test_execution_readiness.py tests/test_execution_io.py
+  tests/test_stage12_audit_repairs.py tests/test_feature_store.py
+  tests/test_final_test_isolation.py tests/test_ensemble_final_test.py
+  tests/test_prediction_contract.py -q -p no:cacheprovider`: initially 182 passed
+  in 15.62 s; after adding favorable full-family/unknown-economic verdict tests,
+  final **186 passed in 15.38 s**. No full suite or full research rerun.
+- `.venv\Scripts\python.exe scripts/check_strategy_guards.py --output
+  results/strategy_validation/GUARD_MUTATIONS_V001.json`: all **26 deliberately
+  broken guards detected**, exit 0. Isolated copies restored between mutations;
+  original source hashes unchanged. Includes 16 Stage #12 guards and 10 Stage #13
+  chronology, pre-materialization, ensemble, null, readiness and accounting guards.
+- `.venv\Scripts\ruff.exe check src tests scripts` clean; `.venv\Scripts\mypy.exe`
+  clean, 208 source files. `git -c core.whitespace=blank-at-eol,blank-at-eof,
+  space-before-tab,cr-at-eol diff --check` clean; original matching source lines
+  retained exact bytes/line endings, UTF-8 without BOM. Final checks rerun.
+- Read-only saved-record validation: eight specs, 32 predictions, 48 economic
+  trials, 304 fills and 72,528 marks checked for preceding labels/inner cutoffs,
+  bar-close availability, frozen-spec hashes, subsequent-arrival fills, duplicate
+  trades, preserved fold marks and PnL/accounting reconciliation. Passed; written
+  immutably to FINAL_VERIFICATION_V001.json. No new outcome evaluation.
+
+Outputs (local ignored results, never replacing historical artifacts): plans and
+runs under results/strategy_validation/, GUARD_MUTATIONS_V001.json,
+DIAGNOSTIC_SUMMARY_V001.json and FINAL_VERIFICATION_V001.json. No results/data
+were deleted. Temporary edit/verification helpers removed.
+
+Changed files (23 source/config/documentation/test files):
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md,
+  docs/stage13_strategy_validation.md.
+- config/strategy_validation.yaml, config/strategy_validation_15m.yaml.
+- src/xauusd_quant/cli.py; src/xauusd_quant/execution/engine.py.
+- src/xauusd_quant/strategy_validation/__init__.py, plan.py, pipeline.py,
+  source.py, policies.py, readiness.py, metrics.py, runs.py (all eight in that
+  new package).
+- tests/strategy_synth.py, tests/test_strategy_chronology.py,
+  tests/test_strategy_execution.py, tests/test_strategy_framework.py,
+  tests/test_strategy_source.py.
+- scripts/check_strategy_guards.py.

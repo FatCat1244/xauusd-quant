@@ -1,0 +1,64 @@
+# Retrospective bounded design. Freeze this plan before reading these diagnostic outcomes.
+# No globally selected Stage 9/11 artifact is eligible for reuse.
+plan_id: STRATEGY_5M_RECONSTRUCTION_V002
+research_question: Does a prespecified forecast-driven policy produce repeatable after-cost economic value under chronological evaluation and declared assumptions?
+timeframe: 5m
+horizon_bars: 1
+target: future_return
+units: log_mid_return
+training_window: expanding
+folds:
+  - fold_id: F01
+    training_start_utc: '2021-05-01T00:00:00Z'
+    evaluation_start_utc: '2021-06-01T00:00:00Z'
+    evaluation_end_utc: '2021-06-01T00:30:00Z'
+    inner_intervals:
+      - ['2021-05-13T00:00:00Z', '2021-05-14T00:00:00Z']
+      - ['2021-05-20T00:00:00Z', '2021-05-21T00:00:00Z']
+  - fold_id: F02
+    training_start_utc: '2021-05-01T00:00:00Z'
+    evaluation_start_utc: '2021-06-01T00:30:00Z'
+    evaluation_end_utc: '2021-06-01T01:00:00Z'
+    inner_intervals:
+      - ['2021-05-13T00:00:00Z', '2021-05-14T00:00:00Z']
+      - ['2021-05-20T00:00:00Z', '2021-05-21T00:00:00Z']
+candidates:
+  - candidate_id: CAUSAL_RIDGE
+    model: ridge
+    rationale: Small causal return/momentum/volatility pool; reselect identities and count inside every fold, fixed ridge penalty.
+  - candidate_id: HISTORICAL_MEAN
+    model: historical_mean
+    rationale: Causal model-free forecast benchmark; prior mean return with identical units and execution opportunities.
+scenarios:
+  - scenario_id: BASE
+  - scenario_id: HIGHER_COST
+    commission_multiplier: 2.0
+    slippage_multiplier: 2.0
+  - scenario_id: LATENCY
+    latency_ms: 500
+  - scenario_id: SPREAD_STRESS
+    spread_multiplier: 1.5
+policy_thresholds: [0.0, 0.00001]
+feature_pool: [return_1, momentum_3, volatility_3]
+feature_counts: [1, 2]
+ridge_alpha: 1.0
+primary_metric: marked_equity_change_account
+trial_budget: 64
+seed: 130013
+minimum_folds: 3
+minimum_closed_trades: 30
+minimum_daily_observations: 20
+bootstrap_days: 5
+bootstrap_replicates: 199
+random_direction_block_opportunities: 16
+remove_largest_trades: 3
+minimum_positive_fold_fraction: 0.6
+maximum_positive_trade_concentration: 0.5
+maximum_positive_fold_concentration: 0.75
+evaluation_history_classification: historical_reconstructed
+prior_search_exposure: 'Known Stage 13 prior attempt: 44 at 5m V001, failed models and 8 completed controls; 15m V001 not executed. Earlier research searches unknown in total.'
+supersedes_plan: STRATEGY_5M_RECONSTRUCTION_V001
+revision_reason: 'V001 inner days fell on Saturday closures and failed. Move both windows back exactly two days to weekdays; same candidates/outer periods/budget. Revised after V001 control outcomes; not original registration. Preserve every prior failure.'
+stopping_rule: 'fixed_budget_no_expansion; candidate failure recorded; invariant failure aborts'
+max_training_rows: 200000
+max_evaluation_days: 31

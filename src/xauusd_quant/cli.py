@@ -716,6 +716,17 @@ def build_parser() -> argparse.ArgumentParser:
             p_exec.add_argument("--max-quotes", type=int, default=50_000)
             p_exec.add_argument("--scenario-set", type=Path)
 
+    for command in ("strategy-plan", "strategy-readiness", "strategy-smoke", "strategy-validate"):
+        p_strategy = sub.add_parser(command, help="Stage 13 offline chronological economic validation")
+        p_strategy.add_argument("--plan", type=Path, default=None)
+        p_strategy.add_argument("--execution-config", type=Path, default=None)
+        p_strategy.add_argument("--evidence", type=Path, default=None)
+        if command != "strategy-plan":
+            p_strategy.add_argument("--run-id", required=True)
+        if command == "strategy-validate":
+            p_strategy.add_argument("--historical-diagnostic", action="store_true",
+                                    help="record unresolved gates; diagnostics cannot be promoted")
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3545,6 +3556,12 @@ def cmd_execution(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_strategy_validation(config: Config, args: argparse.Namespace) -> int:
+    """Lazy offline Stage 13 entry; prediction contracts remain unchanged."""
+    from .strategy_validation.runs import cli_command
+    return cli_command(config, args)
+
+
 COMMANDS = {
     "info": cmd_info,
     "inspect": cmd_inspect,
@@ -3586,6 +3603,10 @@ COMMANDS = {
     "ensemble-freeze": cmd_ensemble_freeze,
     "ensemble-finalize": cmd_ensemble_finalize,
     "ensemble-final-test": cmd_ensemble_final_test,
+    "strategy-plan": cmd_strategy_validation,
+    "strategy-readiness": cmd_strategy_validation,
+    "strategy-smoke": cmd_strategy_validation,
+    "strategy-validate": cmd_strategy_validation,
     "execution-smoke": cmd_execution,
     "execution-readiness": cmd_execution,
     "execution-diagnostic": cmd_execution,
