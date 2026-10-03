@@ -10,7 +10,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 
 ---
 
-## At a glance (2026-10-01)
+## At a glance (2026-10-03)
 
 | Item | State |
 |---|---|
@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Next stage | Prompt #11 complete; Prompt #12 not started (waits for you) |
+| Next stage | Stage #12 offline engine implemented; economic promotion blocked by chronology, untouched-period evidence and broker specifications; stop before #13 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -113,9 +113,10 @@ full dataset. Details at the end.
   `data/metadata/cleanup_log.json`.
 - No conclusions from a partial dataset. Anything computed on one carries
   `PARTIAL DEVELOPMENT SAMPLE — NOT FULL RESEARCH RESULT`.
-- Descriptive research only: no signals, PnL, sizing, stops, execution, live
-  trading, ML strategies or optimisation; nothing (window, band, threshold,
-  wavelet family) is chosen by profitability.
+- Stages #1-#11 were descriptive/predictive only. Prompt #12 explicitly
+  authorizes offline execution, a separate fixed reference policy, cost/PnL
+  and equity accounting. Broker access, demo/live trading, deployment and
+  choosing features/models/policy variants by profitability remain prohibited.
 - Every claim beside null controls; negative results kept; hypotheses in the
   research ledger with multiple-testing counts (from #5), registered before
   evaluation (from #6). "Do not force a positive conclusion."
@@ -1478,3 +1479,135 @@ individual candidate); "=" means the frozen spec is that model. Reading:
 Appended at the end of every stage, and whenever something is built, run,
 fixed or decided. Keep entries factual: what was asked, what was done, what
 came out, what is open. Dates local (UTC+7).
+
+
+## Prompt #12 - offline execution and economics (2026-10-03)
+
+Explicit authorization: build and test an offline execution/backtesting layer,
+not broker access, MT5, demo/live trading, deployment or Stage #13. Initial
+working tree was clean. No research process was running when stamped source
+was repaired. No commit or push. Existing raw data, historical results,
+manifests, frozen specifications and fitted payloads were preserved. Existing
+source line endings were preserved; files are UTF-8 without BOM.
+
+Implemented the `execution` package, four CLI commands, declared hypothetical
+execution configuration and three prespecified sensitivity scenarios. Forecast
+contracts are unchanged. A separate fixed signed-log-return policy feeds a
+single net CFD-like position engine, market orders and first eligible subsequent
+Bid/Ask quotes. Completed-bar availability, computation delay, venue latency,
+expiry, invalid/stale quotes and conservative session-gap cancellation are
+explicit. State persists across batches/months. No stops, limits, partial fills,
+depth, measured fill probabilities, margin calls or full-run restart are claimed.
+Continuous UTC-day funding is declared, including overnight/weekend exposure.
+
+Structured ledgers reconcile closed and open costs, cash, realized/unrealized
+PnL and liquidation-side equity. Spread/slippage decomposition is not subtracted
+twice. Matched-fill and immediate-midpoint counterfactuals are labelled.
+Unknown marks remain unknown. Reports provide counts, gross/net, turnover,
+lot-second exposure, known-mark drawdown and monthly closed-position summaries;
+return is cutoff equity change / initial cash, without annualization/Sharpe.
+Manifests freeze every variant before input values and record resolved configs,
+hashes, source identity including uncommitted files, data/forecast/provenance,
+assumptions, dependency versions and versioned readiness status. Existing IDs
+cannot be overwritten. Real execution access stays before broker-local 2022.
+
+Audit repairs completed:
+- RegressionFeatureStore.load has an exclusive optional `before`; both base
+  filtering and row-aligned window slicing happen before materialization. Both
+  ML development and ensemble slim development callers supply the cutoff.
+  Unbounded consumers retain their behavior.
+- Matching final_test_started events count as attempted access, including
+  interruption. Repeat attempts use the existing explicit logged reason.
+  Ensemble common detection avoids adding the same started event twice.
+- Missing or undefined registered null evidence cannot become passing ensemble
+  eligibility; missing remains untested. Historical result files are untouched.
+- EXECUTION_READINESS_V001 blocks globally selected historical features and
+  outcome-dependent eligibility/correlation. Every adaptive choice, including
+  model fit, must predate each fold; audit intervals must cover the entire run.
+  Missing scientific/specification evidence blocks promotion. Hash roles identify
+  which supplied evidence needs review; hashes alone do not establish truth.
+
+Actual local inventory (metadata + edge inspection, not a new full-content audit):
+- ticks-2e173ef8e61bd240: all 281 monthly files present; 729,244,369 actual footer
+  rows; manifest file sizes, per-partition extrema, month completeness and
+  reconstructed manifest identity match. Broker-local first/last timestamps:
+  2003-05-05 03:01:03.421 through 2026-09-18 23:59:59.079; UTC edge rows:
+  2003-05-05 00:01:03.421 through 2026-09-18 20:59:59.079.
+- Raw file exists, 36,233,955,746 bytes; unchanged, no fresh full raw hash or
+  full quote-content/digest verification. This is not the old 2003-2004 subset.
+- 50 primary frozen hashes checked (37 ML, 13 ensemble), 119 fitted manifests
+  and their payload hashes checked, 32 feature-manifest content hashes checked.
+  No spec/artifact identity errors found. Four prior final-test logs inspected
+  as history only. No new final-test evaluation or reserved feature/target load.
+- Bounded 2021-06-01 contract availability inspection: 5m had 276 rows and 276
+  available expected_return values; 15m had 92 rows and zero available values
+  (no_eligible_ensemble). This sample is not a full-history availability claim.
+
+Actual runs (all outputs local, versioned under results/execution):
+- EXEC_SMOKE_V001/V002: declared synthetic execution only, two fills and one
+  closed long; accounting reconciled. Synthetic fixture PnL is not market evidence.
+- EXEC_READINESS_V001/V002: expected exit 1; data metadata passed, chronology
+  failed, null evidence unknown, untouched evaluation failed, broker terms and
+  audited execution forecast evidence unknown. Status historical_diagnostic_only.
+- EXEC_QUOTE_PROBE_V001/V002: no forecasts, decisions, orders or market economics.
+  Final V002 streamed 50,000 quotes from 2021-06-01T00:00:00.091Z through
+  2021-06-01T07:25:29.755Z (declared request ends next midnight; limit reached).
+  Actual V002 wall time 3.4203555 s, CPU 3.140625 s, own-process peak working set
+  105,754,624 bytes (100.9 MiB), private/peak commit 353,665,024 bytes (337.3 MiB).
+  Counters include imports/preflight, not a RAM guarantee for a full study.
+- GUARD_MUTATIONS_V001 detected 11 broken guards; final V002 detected all 16.
+  Copies were deliberately broken, selected regression tests failed, copies
+  restored, original source hashes unchanged. No actual research source mutation.
+
+Final commands actually run (earlier V001 runs retained):
+```powershell
+.venv\Scripts\python.exe -m pytest tests/test_execution_engine.py tests/test_execution_readiness.py tests/test_execution_io.py tests/test_stage12_audit_repairs.py tests/test_feature_store.py tests/test_final_test_isolation.py tests/test_ensemble_final_test.py tests/test_prediction_contract.py -q -p no:cacheprovider
+.venv\Scripts\ruff.exe check src tests scripts
+.venv\Scripts\mypy.exe
+.venv\Scripts\python.exe scripts/check_execution_guards.py --output results/execution/GUARD_MUTATIONS_V002.json
+.venv\Scripts\python.exe -m xauusd_quant.cli execution-smoke --run-id EXEC_SMOKE_V002
+.venv\Scripts\python.exe -m xauusd_quant.cli execution-readiness --run-id EXEC_READINESS_V002
+.venv\Scripts\python.exe -m xauusd_quant.cli execution-diagnostic --run-id EXEC_QUOTE_PROBE_V002 --quote-probe --start 2021-06-01T00:00:00Z --end 2021-06-02T00:00:00Z --max-quotes 50000
+```
+Focused suite: **154 passed in 14.87 s**. Ruff clean; mypy clean, 200 source
+files. Targeted suite includes existing feature-store, final-test and forecast
+contract regressions. Full suite and unrelated research studies were not run.
+Tests hand-check long/short sides, units, costs, financing, clocks/ties/expiry,
+gaps, marks, reconciliation, chunk/month equivalence, future-append causality,
+DST convention, explicit invalid-forecast rejection and readiness refusal.
+
+Economic conclusions remain blocked. Historical V001 selection uses 2003-2017
+development identities and 2018-2021 size selection, later than early ML scores.
+Ensemble global eligibility/correlation and wf_universe null/structural statuses
+are outcome-dependent across scored blocks. Minimum repair: new versioned,
+fold-local feature identities AND counts; nested preprocessing/tuning/calibration;
+and prior-only eligibility, nulls, universe, correlation and weights. Keep earlier
+records. 2022+ was already inspected in feature research, ML and ensembles;
+neither it nor hypothetical future data is automatically untouched. A new period
+requires independently established uninspected outcomes. Verified broker/account
+terms and an audited, hash-linked execution forecast sidecar are not supplied.
+Existing fitted artifacts are present. No real forecast economic simulation was
+executed, and earlier research accuracy/ensemble results were not reproduced.
+Stage #12 software is complete; no profitability or production claim, no Stage #13.
+
+Files changed (excluding generated immutable results):
+- Documentation: AGENTS.md, CLAUDE.md, README.md, WORKLOG.md,
+  docs/stage12_execution.md.
+- Config: config/execution.yaml, config/execution_scenarios.yaml.
+- New package: src/xauusd_quant/execution/{__init__,config,policy,engine,io,
+  readiness,runs}.py.
+- Integration/repairs: src/xauusd_quant/cli.py, features/store.py, ml/datasets.py,
+  ml/final_test.py, ensemble/final_test.py, research/ensemble_research.py
+  (the shorter paths share src/xauusd_quant/).
+- Tests: tests/test_execution_engine.py, test_execution_readiness.py,
+  test_execution_io.py, test_stage12_audit_repairs.py,
+  test_final_test_isolation.py (all under tests/).
+- Verification: scripts/check_execution_guards.py. Temporary edit helpers removed.
+
+Additional final verification: strengthened the three-scenario integration test
+to check that all variants exist in the immutable manifest before either
+quote or forecast input opens. Ran `.venv\Scripts\python.exe -m pytest
+tests/test_execution_io.py -q -p no:cacheprovider`: **9 passed in 1.31 s**.
+All unchanged source lines retained their exact original bytes/line endings.
+`git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+diff --check` passed (CRLF is intentional). Final ruff and mypy checks clean.

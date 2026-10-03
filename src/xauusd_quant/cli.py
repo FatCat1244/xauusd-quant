@@ -700,6 +700,22 @@ def build_parser() -> argparse.ArgumentParser:
     for flag, what in ens_flags:
         p_eft.add_argument(flag, type=Path, default=None, help=f"path to {what}")
 
+    for command in ("execution-smoke", "execution-readiness",
+                    "execution-diagnostic", "execution-backtest"):
+        p_exec = sub.add_parser(command, help="Stage 12 offline execution / evidence")
+        p_exec.add_argument("--execution-config", type=Path, default=None)
+        p_exec.add_argument("--run-id", required=True, help="new immutable id ending _V001")
+        if command in ("execution-diagnostic", "execution-backtest"):
+            p_exec.add_argument("--start", required=True, help="inclusive UTC ISO timestamp")
+            p_exec.add_argument("--end", required=True, help="exclusive UTC ISO timestamp")
+            p_exec.add_argument("--forecasts", type=Path)
+            p_exec.add_argument("--forecast-metadata", type=Path)
+            p_exec.add_argument("--historical-diagnostic", action="store_true")
+            p_exec.add_argument("--quote-probe", action="store_true",
+                                help="bounded resource probe; no forecast economics")
+            p_exec.add_argument("--max-quotes", type=int, default=50_000)
+            p_exec.add_argument("--scenario-set", type=Path)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3523,6 +3539,12 @@ def _fmt_metric(value: object, spec: str) -> str:
     return spec.format(number) if math.isfinite(number) else "-"
 
 
+def cmd_execution(config: Config, args: argparse.Namespace) -> int:
+    from .execution.runs import cli_command
+
+    return cli_command(config, args)
+
+
 COMMANDS = {
     "info": cmd_info,
     "inspect": cmd_inspect,
@@ -3564,6 +3586,10 @@ COMMANDS = {
     "ensemble-freeze": cmd_ensemble_freeze,
     "ensemble-finalize": cmd_ensemble_finalize,
     "ensemble-final-test": cmd_ensemble_final_test,
+    "execution-smoke": cmd_execution,
+    "execution-readiness": cmd_execution,
+    "execution-diagnostic": cmd_execution,
+    "execution-backtest": cmd_execution,
     "query": cmd_query,
 }
 

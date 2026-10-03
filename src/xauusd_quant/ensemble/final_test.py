@@ -100,7 +100,8 @@ def slim_development_data(cfgs: Any, timeframe: str, horizons: list[int]) -> MLD
         raw[c] = v
     store = RegressionFeatureStore(cfgs.config, cfgs.regression)
     rframe = store.load(timeframe, cfgs.targets.regression_window,
-                        ["timestamp", "residual", "trailing_volatility"])
+                        ["timestamp", "residual", "trailing_volatility"],
+                        before=reserved)
     rframe = rframe.filter(pl.col("timestamp") < pl.lit(_midnight(reserved))
                            .cast(rframe["timestamp"].dtype))
     if not rframe["timestamp"].equals(stamps):
@@ -222,7 +223,7 @@ def run_ensemble_final_test(cfgs: Any, cfg: MLConfig, ecfg: Any, dev: MLData,
     out_dir = ensure_dir(out_dir)
     log = out_dir / "access_log.jsonl"
     hashes = {s["content_hash"] for s in specs}
-    prior = prior_evaluations(log, hashes) + _prior_starts(log, hashes)
+    prior = prior_evaluations(log, hashes)
     if prior and not repeat_reason:
         seen = sorted({str(p.get("spec_id") or p.get("utc")) for p in prior})
         raise EnsembleFinalTestRefusedError(

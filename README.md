@@ -2,7 +2,8 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Ten layers - nine descriptive, one predictive (probabilities, never trades):
+Twelve layers: nine descriptive, two predictive, and explicitly authorized
+offline execution research. Forecast contracts remain prediction-only:
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
@@ -42,14 +43,21 @@ Ten layers - nine descriptive, one predictive (probabilities, never trades):
     the ledger, frozen model specifications and one evaluation on the reserved
     period. Models output probabilities and expected values only.
 
+11. **Ensemble research** - eligibility, diversification, chronological weight
+    fitting, frozen specifications and forecast contracts. Historical selection
+    limitations are retained and block clean out-of-sample promotion.
+12. **Offline execution and economics** - streaming Bid/Ask market-order
+    simulation, a fixed separate policy, costs, accounting and readiness gates.
+    No broker access or live trading.
+
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
-> **Trading strategies, signal generation, thresholds, position sizing, PnL,
-> execution, optimization and backtesting are intentionally NOT implemented.**
-> They belong to later stages and are deliberately absent. An OU half-life
-> estimated here is a description of a residual, and a model's probability is a
-> forecast, not a trading rule. See [Non-goals](#non-goals).
+> **Prompt #12 authorizes offline backtesting only.** The separate execution
+> layer has a fixed reference policy and hypothetical cost scenarios. Scientific
+> and broker-specification gates currently block economic conclusions. Forecasts
+> remain probabilities and expected values; broker connectivity, demo/live trading
+> and deployment remain prohibited. See [Stage #12](docs/stage12_execution.md).
 
 ---
 
@@ -127,12 +135,15 @@ Raw XAUUSD tick CSV (34 GB, read-only)
    -> regime study     (K-Means / GMM / HMM, offline vs walk-forward filtered states)
    -> feature factory  (one versioned causal matrix + a separate target table)
    -> alpha research   (rank IC, decay, stability, nulls, redundancy - statuses, not signals)
-   -> feature selection (development-only selection, validation, sealed test, manifests)
-   -> supervised models (walk-forward prediction research, frozen specs, one final test)
+   -> feature selection (historical selection, validation, immutable manifests)
+   -> supervised models (walk-forward research, frozen specs, logged final attempts)
+   -> ensembles         (forecast combinations, historical chronology limitations)
+   -> offline execution (fixed separate policy, streaming quotes, costs, accounting)
 ```
 
-Everything after that arrow chain is future work. Nothing in this repository
-defines a trading rule, and no layer applies a transaction cost.
+Stage #12 applies declared execution costs in an offline simulator. Current
+scientific evidence and unknown broker terms prevent a tradable-edge conclusion.
+No broker connectivity or demo/live trading is implemented. Stop before #13.
 
 ## Installation
 
@@ -1729,7 +1740,12 @@ Notebooks [`39_feature_filtering`](research/39_feature_filtering.ipynb) to
 [`44_feature_ablation`](research/44_feature_ablation.ipynb) display the
 stored results.
 
-### Findings (selection 2003-2017, validation 2018-2021; 2022- untouched)
+### Historical findings (selection 2003-2017, size validation 2018-2021)
+
+Stage #12 audit: these immutable manifests use later outcomes than early
+ML scoring folds. The Standard/Minimal counts depend on validation plateaus.
+These recorded findings are preserved as historical diagnostics; the
+2022+ period was already inspected by feature research and later stages.
 
 | tf | registered | quality | development universe | Minimal | Standard | Extended | general | direction | reversion | volatility | magnitude |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -2537,9 +2553,25 @@ warns when validation counts cover only part of the raw input.
 
 ---
 
+## Stage #12: offline execution and trading economics
+
+Prompt #12 (2026-10-03) authorizes offline simulation and a separate fixed
+decision policy, costs, PnL and equity. The forecast contracts are unchanged.
+See [Stage #12 interfaces and audit](docs/stage12_execution.md) for actual
+commands, supported order semantics, assumptions, evidence blockers and tests.
+Historical feature-selection and ensemble results are retained: their global
+adaptive choices prevent promoting the existing 2011-2021 scores as clean
+out-of-sample evidence. 2022+ was already inspected; no fresh final test is
+claimed. Broker access, demo/live trading and deployment remain prohibited.
+
 ## Non-goals
 
-Deliberately **not** implemented at this stage, and not to be added here
+The list below records the historical Stages #1-#11 scope. Stage #12 now
+implements offline entries/exits, fixed quantity, PnL, tick execution,
+declared costs and backtesting as documented above. The other exclusions
+(especially broker/live access and performance-based model selection) remain.
+
+Historically **not** implemented before Stage #12, and not to be added here
 without a decision to move to the next stage:
 
 regression strategies · Z-score strategies · Ornstein–Uhlenbeck strategies ·

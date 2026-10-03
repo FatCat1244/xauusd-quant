@@ -1,0 +1,13 @@
+# Registered together before inspecting any outcome; sequential runs, no search.
+- scenario_id: HYPOTHETICAL_BASE_V001
+  latency_ms: 100
+  commission_account_per_lot_per_leg: 3.0
+  slippage_usd_per_ounce_per_leg: 0.02
+- scenario_id: HYPOTHETICAL_COST_CONTROL_V001
+  latency_ms: 100
+  commission_account_per_lot_per_leg: 0.0
+  slippage_usd_per_ounce_per_leg: 0.0
+- scenario_id: HYPOTHETICAL_DELAY_V001
+  latency_ms: 500
+  commission_account_per_lot_per_leg: 3.0
+  slippage_usd_per_ounce_per_leg: 0.02

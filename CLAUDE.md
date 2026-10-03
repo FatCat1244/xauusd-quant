@@ -2,8 +2,23 @@
 
 ## Scope discipline
 
-This repository is **research only** - nine descriptive layers and two
-predictive ones:
+**Stage #12 authorization (2026-10-03):** Prompt #12 explicitly permits an
+offline execution and trading-economics layer, including a separate fixed
+decision policy, market-order simulation, position accounting, costs, PnL
+and equity. Earlier research-only restrictions below describe Stages #1-#11
+and are superseded only for this offline layer. Forecast contracts stay
+prediction-only; no model/features/policy choice uses trading performance.
+Broker/MT5 connections, demo/live trading, deployment, neural networks and
+automatic progression to Stage #13 remain prohibited. See
+`docs/stage12_execution.md` for timing, units, gates and actual verification.
+2022+ has already been inspected (including feature research, ML and
+ensembles). It is not untouched. Stage #12 commands read development
+forecasts/ticks only; no new reserved-outcome access path is introduced.
+
+
+The historical Stages #1-#11 scope was **research forecasts only** - nine
+descriptive layers and two predictive ones, preserved below. Stage #12 adds
+the explicitly authorized offline layer described above:
 
 1. the data foundation (ticks -> Parquet -> bars -> queries);
 2. the statistical research layer (returns, volatility, ACF, stationarity,
@@ -44,9 +59,10 @@ predictive ones:
     and the standardized prediction contract; the final test is a logged
     second look at 2022-).
 
-Strategy, signal, threshold, sizing, PnL, execution, optimization-by-trading-
-performance, backtesting and neural-network code is deliberately absent and
-must not be added here without an explicit decision to move to the next stage.
+Earlier stages excluded strategy, signal, sizing, PnL and execution code.
+Prompt #12 supplies the explicit authorization for offline execution only.
+Optimization by trading performance, neural networks and live trading remain
+prohibited; the forecast/research modules retain their original boundaries.
 See the "Non-goals" section of `README.md`.
 
 Note the distinction that list draws: regression, OU, spectral, wavelet and

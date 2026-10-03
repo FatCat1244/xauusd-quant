@@ -131,7 +131,7 @@ def recent_base(dev: MLData, spec: dict[str, Any], tspec: TargetSpec, cfg: MLCon
 
 
 def prior_evaluations(log: Path, hashes: set[str]) -> list[dict[str, Any]]:
-    """Earlier ``evaluated`` entries of the access log for any of these spec hashes."""
+    """Matching completed OR interrupted attempts; a started run is already a look."""
     if not log.exists():
         return []
     out = []
@@ -140,7 +140,10 @@ def prior_evaluations(log: Path, hashes: set[str]) -> list[dict[str, Any]]:
             entry = json.loads(line)
         except ValueError:
             continue
-        if entry.get("event") == "evaluated" and entry.get("spec_hash") in hashes:
+        completed = entry.get("event") == "evaluated" and entry.get("spec_hash") in hashes
+        started = (entry.get("event") == "final_test_started"
+                   and bool(hashes & set((entry.get("specs") or {}).values())))
+        if completed or started:
             out.append(entry)
     return out
 

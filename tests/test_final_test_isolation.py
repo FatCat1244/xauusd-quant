@@ -85,11 +85,14 @@ class _FakeRegressionStore:
     def __init__(self, *_: object) -> None:
         pass
 
-    def load(self, _timeframe: str, _window: int, _columns: list[str]) -> pl.DataFrame:
+    def load(self, _timeframe: str, _window: int, _columns: list[str], *,
+             before: Any = None) -> pl.DataFrame:
         ts = stamps()
         n = ts.len()
-        return pl.DataFrame({"timestamp": ts, "residual": np.sin(np.arange(n) / 50.0),
-                             "trailing_volatility": np.full(n, 0.004)})
+        frame = pl.DataFrame({"timestamp": ts, "residual": np.sin(np.arange(n) / 50.0),
+                              "trailing_volatility": np.full(n, 0.004)})
+        return (frame.filter(pl.col("timestamp") < pl.lit(before).cast(ts.dtype))
+                if before is not None else frame)
 
 
 def test_a_frozen_spec_reads_exactly_the_reserved_rows(tmp_path: Path,

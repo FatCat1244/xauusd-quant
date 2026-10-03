@@ -348,7 +348,8 @@ def load_ml_data(cfg: MLConfig, scfg: FeatureSelectionConfig, fcfg: FeatureFacto
     del tframe
     store = RegressionFeatureStore(config, regression)
     rframe = store.load(timeframe, tcfg.regression_window,
-                        ["timestamp", "residual", "trailing_volatility"])
+                        ["timestamp", "residual", "trailing_volatility"],
+                        before=reserved)
     rframe = rframe.filter(pl.col("timestamp") < pl.lit(_midnight(reserved))
                            .cast(rframe["timestamp"].dtype))           # cut at once
     if not rframe["timestamp"].equals(stamps):

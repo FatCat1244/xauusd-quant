@@ -1,0 +1,32 @@
+# Stage 12 fully declared HYPOTHETICAL scenario, not Exness/account specifications.
+# Quantity: lots. Contract: troy ounces/lot. Bid/Ask: USD/troy ounce.
+# Funding: account currency/lot/elapsed UTC day, including weekends and gaps.
+scenario_id: HYPOTHETICAL_USD_V001
+specification_status: hypothetical
+specification_source: "Stage 12 prespecified hypothetical values; no broker inference"
+account_currency: USD
+account_currency_per_usd: 1.0
+contract_ounces_per_lot: 100.0
+quantity_lots: 0.01
+quantity_increment_lots: 0.01
+min_quantity_lots: 0.01
+max_quantity_lots: 1.0
+commission_account_per_lot_per_leg: 3.0
+slippage_usd_per_ounce_per_leg: 0.02
+financing_long_account_per_lot_per_day: 2.0
+financing_short_account_per_lot_per_day: 2.0
+financing_model: continuous_elapsed_utc_days
+latency_ms: 100
+computation_delay_ms: 0
+order_ttl_ms: 30000
+max_quote_age_ms: 1000
+max_gap_ms: 300000
+initial_cash_account: 10000.0
+end_policy: retain_and_mark
+equity_sample_ms: 1000
+batch_rows: 16384
+policy_id: SIGNED_EXPECTED_RETURN_V001
+policy_field: expected_return
+policy_units: log_mid_return
+timeframe: 5m
+horizon_bars: 1

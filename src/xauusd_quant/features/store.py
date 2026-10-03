@@ -31,6 +31,7 @@ import json
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -255,13 +256,18 @@ class RegressionFeatureStore:
 
     # -- load ----------------------------------------------------------------
     def load(self, timeframe: str, window: int,
-             columns: Sequence[str] | None = None) -> pl.DataFrame:
+             columns: Sequence[str] | None = None, *,
+             before: date | datetime | None = None) -> pl.DataFrame:
         """The feature frame, verified against the current bars and settings.
 
         *columns* restricts the result - and what is read from disk - to those
         names, in that order. Values are identical to the full frame's; at 23
         years of 1-minute bars the full frame is ~30 columns x 7.9M rows, so a
         caller that needs seven should ask for seven.
+
+        *before* is exclusive. The timestamped base is filtered at the scan;
+        the timestamp-free, row-aligned window table is sliced to that prefix
+        BEFORE collecting feature values. Unbounded consumers are unchanged.
         """
         manifest = self.manifest(timeframe)
         entry = (manifest or {}).get("windows", {}).get(str(window))
@@ -303,11 +309,20 @@ class RegressionFeatureStore:
         read = {c for name in wanted for c in sources.get(name, [name])}
         stored = pq.read_schema(specific_path).names
         # The timestamp is always read: it anchors the frame's height.
-        frame = pl.read_parquet(
-            base_path, columns=[c for c in BASE_COLUMNS if c in read or c == "timestamp"])
+        base_scan = pl.scan_parquet(base_path).select(
+            [c for c in BASE_COLUMNS if c in read or c == "timestamp"])
+        if before is not None:
+            boundary = (datetime.combine(before, datetime.min.time())
+                        if not isinstance(before, datetime) else before)
+            base_scan = base_scan.filter(pl.col("timestamp") < pl.lit(boundary)
+                                         .cast(base_scan.collect_schema()["timestamp"]))
+        frame = base_scan.collect()
         if any(c in read for c in stored):
-            frame = frame.hstack(
-                pl.read_parquet(specific_path, columns=[c for c in stored if c in read]))
+            window_scan = pl.scan_parquet(specific_path).select(
+                [c for c in stored if c in read])
+            if before is not None:
+                window_scan = window_scan.slice(0, frame.height)
+            frame = frame.hstack(window_scan.collect())
         # Re-derive with the very numpy calls rolling_regression_features uses,
         # so a loaded frame is bit-identical to a freshly computed one.
         derived: list[pl.Series | pl.Expr] = []

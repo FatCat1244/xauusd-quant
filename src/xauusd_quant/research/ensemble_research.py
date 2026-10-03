@@ -233,23 +233,34 @@ def _null_rows(nc: pl.DataFrame, target: str, h: int, fam: str, fset: str,
     return out
 
 
-def _null_verdict(rows: list[dict[str, Any]]) -> tuple[str, list[str]]:
+def _null_verdict(rows: list[dict[str, Any]], expected: tuple[str, ...] = ()
+                  ) -> tuple[str, list[str]]:
     """passed / failed / untested; failure: mean real - null <= 0, or > 1 losing block."""
     if not rows:
         return "untested", []
-    notes, failed, tested = [], False, False
+    notes, failed, tested, unknown = [], False, False, False
+    for name in expected:
+        if not any(str(r["variant"]) == name or str(r["variant"]).startswith(name + "__")
+                   or (name == "shift" and str(r["variant"]).startswith("null-shift"))
+                   for r in rows):
+            unknown = True
+            notes.append(f"{name}: unavailable")
     for r in rows:
-        diff, blocks, wins = r.get("real_minus_control"), int(r.get("blocks") or 0), r.get("wins")
-        if diff is None or not np.isfinite(diff) or blocks == 0 or wins is None:
+        diff, blocks_raw, wins = r.get("real_minus_control"), r.get("blocks"), r.get("wins")
+        known = all(v is not None and np.isfinite(v) for v in (diff, blocks_raw, wins))
+        blocks = int(blocks_raw) if known and blocks_raw is not None else 0
+        if not known or blocks <= 0:
+            unknown = True
             notes.append(f"{r['variant']}: undefined")
             continue
+        assert diff is not None and wins is not None
         tested = True
         bad = diff <= 0 or (blocks - int(wins)) > 1
         failed |= bad
         notes.append(f"{r['variant']}: {diff:+.4f} ({int(wins)}/{blocks} blocks)")
     if not tested:
         return "untested", notes
-    return ("failed" if failed else "passed"), notes
+    return ("failed" if failed else "untested" if unknown else "passed"), notes
 
 
 def eligibility_table(tctx: TFContext, pair: PairPredictions) -> pl.DataFrame:
@@ -320,7 +331,12 @@ def eligibility_table(tctx: TFContext, pair: PairPredictions) -> pl.DataFrame:
             rep_fam = ("lightgbm" if fam in ml.tree_families
                        else ml.reference_linear(tspec.task))
             nrows = _null_rows(nc, pair.target, pair.horizon, rep_fam, fset, registered)
-        null_status, null_notes = _null_verdict(nrows)
+        required_nulls = tuple(n for n in registered
+                               if tspec.kind == "reversion" or not n.startswith("pipeline-"))
+        null_status, null_notes = _null_verdict(nrows, required_nulls)
+        if null_status == "untested":
+            flags["untested"] = True
+            reasons.append("registered null evidence unavailable or incomplete")
         if null_status == "failed":
             flags["null_failed"] = True
             reasons.append("within a registered null: " + "; ".join(null_notes))
