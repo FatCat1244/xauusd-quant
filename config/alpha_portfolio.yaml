@@ -1,0 +1,14 @@
+plan_id: ALPHA_PORTFOLIO_V003
+registry_id: ALPHA_REGISTRY_V003
+evidence_run: ROBUST_HISTORICAL_V002
+methods: [equal, minimum_variance_shrunk]
+seed: 150015
+budget_lots: 0.02
+covariance_rows: 32
+shrinkage: 0.5
+trial_budget: 24
+maximum_events: 10000
+wall_budget_seconds: 120
+private_memory_budget_bytes: 1073741824
+revision_reason: "corrected Stage13 V002 source identities alongside failed V001 history; explicit policy contract validation implements the existing eligibility rule; candidate family, methods, budget, periods and acceptance unchanged"
+supersedes: ALPHA_PORTFOLIO_V002

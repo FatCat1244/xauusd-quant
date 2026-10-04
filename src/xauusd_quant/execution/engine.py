@@ -3,7 +3,8 @@
 At equal timestamps quotes precede bar-close events in the input stream. Orders
 require a strictly subsequent timestamp, so no quote at decision/arrival time can
 fill. Original sequence resolves quote ties. Timers survive chunks and partitions.
-Only one net position is allowed, without pyramiding, reversals or partial fills.
+Only one net position is allowed, without pyramiding or partial fills. The Stage15
+target API closes fully before any resize/reversal; fills/accounting stay here.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .config import ExecutionConfig
+from .config import ExecutionConfig, content_hash
 from .policy import Forecast, decision, utc_time
 
 Recorder = Callable[[str, dict[str, Any]], None]
@@ -52,6 +53,7 @@ class Order:
     expires_utc: datetime
     close_bar_index: int
     immediate_midpoint: float | None
+    quantity_lots: float | None = None
 
 
 @dataclass
@@ -105,7 +107,7 @@ class ExecutionEngine:
         self.counts: Counter[str] = Counter()
         self.total_commission = self.total_financing = self.total_gross = 0.0
         self.total_spread = self.total_slippage = self.midpoint_gross = 0.0
-        self.turnover = self.lot_seconds = 0.0
+        self.turnover = self.lot_seconds = self.position_seconds = 0.0
         self.peak_equity = self.cash
         self.max_drawdown = 0.0
         self.last_equity_record: datetime | None = None
@@ -147,6 +149,7 @@ class ExecutionEngine:
             )
             charge = rate * p.quantity_lots * seconds / 86400
             self.lot_seconds += seconds * p.quantity_lots
+            self.position_seconds += seconds
             if charge:
                 p.financing += charge
                 self.total_financing += charge
@@ -171,7 +174,13 @@ class ExecutionEngine:
             self.pending = None
 
     def _submit(
-        self, stamp: datetime, forecast_id: str, purpose: str, direction: int, close_bar_index: int
+        self,
+        stamp: datetime,
+        forecast_id: str,
+        purpose: str,
+        direction: int,
+        close_bar_index: int,
+        quantity_lots: float | None = None,
     ) -> None:
         self.order_number += 1
         snapshot = (
@@ -190,10 +199,53 @@ class ExecutionEngine:
             arrival + timedelta(milliseconds=self.config.order_ttl_ms),
             close_bar_index,
             snapshot,
+            quantity_lots,
         )
         self.pending = order
         self.counts["submitted"] += 1
         self.record("orders", {**asdict(order), "status": "submitted", "event_utc": stamp})
+
+    def request_target(self, at_utc: datetime, target_lots: float, identity: str) -> None:
+        """Reconcile one shared target, using actual state and the same fill machinery.
+
+        Zero cancels pending entry and requests liquidation. Resize/reversal closes
+        the entire position, then a later call may reopen. Existing pending exits
+        are retained. The caller owns target persistence and retry policy; no fill
+        or fee is synthesized here. This API cannot be mixed with forecast entries.
+        """
+        at = utc_time(at_utc)
+        c = self.config
+        quantity = abs(target_lots)
+        if not math.isfinite(target_lots) or not identity:
+            raise ValueError("finite target and specification identity required")
+        if quantity and (
+            not c.min_quantity_lots <= quantity <= c.max_quantity_lots
+            or not math.isclose(
+                quantity / c.quantity_increment_lots,
+                round(quantity / c.quantity_increment_lots),
+                abs_tol=1e-9,
+            )
+        ):
+            raise ValueError("target quantity outside declared bounds/increments")
+        if self.next_forecast is not None or self.last_forecast_time is not None:
+            raise ValueError("shared target account cannot also consume standalone forecasts")
+        self._advance(at, inclusive=False)
+        direction = 1 if target_lots > 0 else -1 if target_lots < 0 else 0
+        order = self.pending
+        if order is not None and order.purpose == "entry":
+            pending_quantity = order.quantity_lots or c.quantity_lots
+            if direction != order.direction or not math.isclose(quantity, pending_quantity):
+                self._terminal_order("cancelled", "portfolio_target_changed", at)
+        if self.pending is not None:
+            return
+        p = self.position
+        if p is not None:
+            if p.direction != direction or not math.isclose(p.quantity_lots, quantity):
+                p.exit_requested = True
+                self._submit(at, identity, "exit", p.direction, p.close_bar_index, p.quantity_lots)
+        elif direction:
+            # Portfolio owns observed-bar holding and intent expiry, not this timer.
+            self._submit(at, identity, "entry", direction, 2**63 - 1, quantity)
 
     def _decide(self, f: Forecast) -> None:
         stamp = utc_time(f.available_at_utc)
@@ -247,14 +299,16 @@ class ExecutionEngine:
     def _fill(self, q: Quote) -> None:
         o = self.pending
         assert o is not None
-        c, mult = self.config, self.price_multiplier
+        c = self.config
+        quantity = o.quantity_lots if o.quantity_lots is not None else c.quantity_lots
+        mult = quantity * c.contract_ounces_per_lot * c.account_currency_per_usd
         direction = o.direction if o.purpose == "entry" else -o.direction
         side = q.ask if direction == 1 else q.bid
         price = side + direction * c.slippage_usd_per_ounce_per_leg
         if price <= 0:
             self._terminal_order("rejected", "slippage_produces_invalid_price", q.timestamp_utc)
             return
-        commission = c.commission_account_per_lot_per_leg * c.quantity_lots
+        commission = c.commission_account_per_lot_per_leg * quantity
         spread_cost = abs(side - q.midpoint) * mult
         self.total_commission += commission
         self.turnover += price * mult
@@ -271,7 +325,7 @@ class ExecutionEngine:
             "bid": q.bid,
             "ask": q.ask,
             "midpoint": q.midpoint,
-            "quantity_lots": c.quantity_lots,
+            "quantity_lots": quantity,
             "contract_ounces_per_lot": c.contract_ounces_per_lot,
             "commission_account": commission,
             "spread_cost_account": spread_cost,
@@ -285,7 +339,7 @@ class ExecutionEngine:
                 self.position_number,
                 o.forecast_id,
                 o.direction,
-                c.quantity_lots,
+                quantity,
                 q.timestamp_utc,
                 q.timestamp_local,
                 price,
@@ -359,7 +413,9 @@ class ExecutionEngine:
             unrealized = (
                 p.direction
                 * ((q.bid if p.direction == 1 else q.ask) - p.entry_price)
-                * self.price_multiplier
+                * p.quantity_lots
+                * self.config.contract_ounces_per_lot
+                * self.config.account_currency_per_usd
                 if fresh and q is not None
                 else None
             )
@@ -466,6 +522,86 @@ class ExecutionEngine:
         self.record("equity", mark)
         return mark
 
+    def target_state(self) -> dict[str, Any]:
+        """Bounded restart state for the target-only account; no future forecast iterator."""
+        if self.next_forecast is not None or self.last_forecast_time is not None:
+            raise ValueError("serialization supported for shared target accounts only")
+        names = (
+            "completed_bar_index",
+            "cash",
+            "cash_correction",
+            "realized",
+            "total_commission",
+            "total_financing",
+            "total_gross",
+            "total_spread",
+            "total_slippage",
+            "midpoint_gross",
+            "turnover",
+            "lot_seconds",
+            "position_seconds",
+            "peak_equity",
+            "max_drawdown",
+            "order_number",
+            "position_number",
+        )
+        clocks = ("clock", "first_clock", "last_equity_record")
+        return {
+            "schema": "TARGET_ACCOUNT_STATE_V001",
+            "config_sha256": content_hash(self.config.resolved()),
+            "numbers": {name: getattr(self, name) for name in names},
+            "clocks": {
+                name: getattr(self, name).isoformat() if getattr(self, name) else None
+                for name in clocks
+            },
+            "counts": dict(self.counts),
+            "last_key": [self.last_key[0].isoformat(), *self.last_key[1:]]
+            if self.last_key
+            else None,
+            **{
+                name: asdict(getattr(self, name)) if getattr(self, name) else None
+                for name in ("pending", "position", "last_quote", "previous_quote")
+            },
+        }
+
+    @classmethod
+    def restore_target_state(
+        cls, config: ExecutionConfig, state: dict[str, Any], record: Recorder
+    ) -> ExecutionEngine:
+        if state.get("schema") != "TARGET_ACCOUNT_STATE_V001" or state.get(
+            "config_sha256"
+        ) != content_hash(config.resolved()):
+            raise ValueError("target state schema/configuration mismatch")
+        engine = cls(config, [], record)
+        expected = set(engine.target_state()["numbers"])
+        if set(state["numbers"]) != expected:
+            raise ValueError("incomplete account state")
+        for name, value in state["numbers"].items():
+            setattr(engine, name, value)
+        for name, value in state["clocks"].items():
+            setattr(engine, name, datetime.fromisoformat(value) if value else None)
+        engine.counts = Counter(state["counts"])
+        key = state["last_key"]
+        engine.last_key = (datetime.fromisoformat(key[0]), key[1], key[2]) if key else None
+        for name, kind in (
+            ("pending", Order),
+            ("position", Position),
+            ("last_quote", Quote),
+            ("previous_quote", Quote),
+        ):
+            body = state[name]
+            if body is not None:
+                body = body.copy()
+                for field, value in body.items():
+                    if (
+                        value is not None
+                        and (field.endswith("_utc") or field.endswith("_local"))
+                        and isinstance(value, str)
+                    ):
+                        body[field] = datetime.fromisoformat(value)
+                setattr(engine, name, kind(**body))
+        return engine
+
     def finish(self, end_utc: datetime) -> dict[str, Any]:
         """Declared cutoff: no future quote is read and no earlier quote becomes a fill."""
         end = utc_time(end_utc)
@@ -494,9 +630,7 @@ class ExecutionEngine:
             "closed_slippage_account": self.total_slippage,
             "turnover_account": self.turnover,
             "exposure_lot_seconds": self.lot_seconds,
-            "time_exposure_fraction": self.lot_seconds / (self.config.quantity_lots * duration)
-            if duration > 0
-            else None,
+            "time_exposure_fraction": self.position_seconds / duration if duration > 0 else None,
             "max_drawdown_account": self.max_drawdown,
             "cutoff_equity_return": pnl / self.config.initial_cash_account
             if pnl is not None

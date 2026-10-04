@@ -2,8 +2,9 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Fourteen layers plus a bounded econometric extension: nine descriptive,
-two predictive, offline execution and offline chronological strategy validation.
+Fifteen offline stages plus a bounded econometric extension: nine descriptive,
+two predictive, execution, chronological strategy validation, robustness and
+alpha-portfolio infrastructure. No alpha currently qualifies for portfolio research.
 Forecast contracts remain prediction-only:
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
@@ -59,7 +60,12 @@ Forecast contracts remain prediction-only:
 14. **Bounded robustness** - selection inventory, strict statistical assumptions,
     complete-family corrections, block uncertainty, synthetic discovery controls,
     engine execution stress and econometric sensitivity. See
-    [Stage #14](docs/stage14_robustness.md). Stop before Stage #15.
+    [Stage #14](docs/stage14_robustness.md).
+
+15. **Offline alpha portfolio** - versioned evidence registry, causal exposure
+    intents, prior-only allocations, shared execution and reconciled attribution.
+    No eligible alpha or selected trading strategy. See
+    [Stage #15](docs/stage15_alpha_portfolio.md). Stop before Stage #16.
 
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
@@ -2603,14 +2609,17 @@ xq econometric-smoke --plan config/econometrics.yaml --run-id ECON_SMOKE_5M_V001
 xq econometric-evaluate --plan config/econometrics.yaml --run-id ECON_5M_DIAGNOSTIC_V001
 ```
 
-This preserved Stage #13.5 record is extended by Stage #14 offline robustness.
-Stop before Stage #15. No broker, demo/live trading or deployment.
+This preserved Stage #13.5 record is extended by Stage #14 robustness and Stage #15
+offline portfolio infrastructure. Stop before Stage #16. No broker, demo/live
+trading or deployment.
 
 ## Non-goals
 
 The list below records the historical Stages #1-#11 scope. Stage #12 now
 implements offline entries/exits, fixed quantity, PnL, tick execution,
-declared costs and backtesting as documented above. The other exclusions
+declared costs and backtesting as documented above. Stage #15 adds bounded
+offline policy combination and shared-account research, with zero eligible alphas.
+Production portfolio/risk management is excluded. The other exclusions
 (especially broker/live access and performance-based model selection) remain.
 
 Historically **not** implemented before Stage #12, and not to be added here
@@ -2831,3 +2840,12 @@ verification: 271 tests passed, 36 deliberately broken leakage guards detected,
 Ruff/mypy clean. See [actual findings and limitations](docs/stage13_5_econometrics.md#executed-bounded-findings-2026-10-04)
 and WORKLOG.md for measurements, negative comparisons and the preserved fixture
 access audit. This is retrospective evidence, not a validated trading edge.
+## Stage #15 offline alpha portfolio
+
+Prompt #15 adds an immutable alpha registry, causal policy intents and one shared
+Stage #12 execution account. The actual Stage #14 evidence yields
+**NO_ELIGIBLE_ALPHAS**; no trading strategy is selected. Synthetic studies validate
+timing, netting, attribution, prior-only allocations and declared cost comparisons.
+See [Stage #15 evidence and commands](docs/stage15_alpha_portfolio.md) and the
+[architecture specification](docs/stage15_strategy_specification.md).
+Offline only; no broker, demo/live orders, deployment, commits, pushes or Stage #16.

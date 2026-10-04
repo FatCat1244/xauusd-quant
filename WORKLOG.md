@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Current extension | Stage #14 bounded robustness framework; offline only; recorded search exposure partial, older searches unknown; candidates blocked, short conditional evidence inconclusive; stop before #15 |
+| Current extension | Stage #15 offline alpha registry/shared account; NO_ELIGIBLE_ALPHAS; 237 targeted tests passed, 54 guards detected; recorded search exposure partial, older searches unknown; stop before #16 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -1437,6 +1437,12 @@ individual candidate); "=" means the frozen spec is that model. Reading:
 
 ## Open items
 
+Stage #15: no evidence-supported alpha portfolio. Matching prior-only pipeline
+nulls, economic/execution evidence, complete policy clocks, adequate coverage and
+fold-local eligibility remain prerequisites. Corrected Stage #13 fits are present;
+unknown legacy selection chronology and previously inspected periods remain.
+Stage #16 and broker/shadow/demo work require separate authorization.
+
 Stage #14: no candidate currently eligible for Stage #15. Required matching
 prior-only random-walk/sign-flip evidence, audited provenance and verified supplied
 execution terms remain missing. Legacy feature/count/universe chronology remains
@@ -2164,3 +2170,161 @@ remain. Pre-commit inspection confirms `main`, the expected GitHub origin, no
 unrelated working-tree changes, and a clean `git diff --check`. Data and local
 research artifacts remain ignored. Prior targeted tests, guard mutations, lint
 and typing results above remain the validation evidence for this unchanged code.
+
+## 2026-10-04 - Stage #15 offline alpha portfolio
+
+Prompt #15 authorizes bounded offline alpha combination and shared accounting,
+superseding prior stage stopping rules for this extension. The tree was clean at
+fde1c79 before edits. No commit/push, broker connection, demo/live order, deployment,
+raw-data change, reserved outcome access or Stage #16 work. No cached ML, selection,
+regime or ensemble source was changed. Historical artifacts and failed runs remain.
+
+Actual evidence audited: Stage12/13/13.5 documentation, source, ledgers/manifests,
+Stage14 ROBUST_HISTORICAL_V002 verdict/inventory and ROBUST_SMOKE_V003 verdict.
+Stage14 has no eligible Stage15 candidate. Initial 5m Stage13 V001 has 44 attempts,
+36 failed/8 completed, no frozen fits. Corrected 5m/15m V002 each has 44 completed
+attempts and four actual frozen fits over two folds. The first registry audit
+incorrectly referenced only V001; the directory audit found the V002 files, and
+registry/plan V003 corrects that reference without erasing earlier versions.
+Saved Stage13 economics are negative across all16 forecast variants/timeframe;
+6/2 trades in one hour cannot support robust uncertainty. These recorded market
+results were inspected, not reproduced or used to select portfolio methods.
+Stage13.5 actual 5m/15m fits remain forecast evidence, with matching null/evidence
+and economic gates missing. Legacy feature/count/universe chronology unresolved.
+217 completed/51 failed recorded upstream historical attempts; older discovery
+searches and effective independent trials unknown. No new untouched period proved.
+
+Registry ALPHA_REGISTRY_V003 holds66 records:16 directional policy hypotheses,
+50 diagnostic/forecast entries, zero scientific eligibility. Actual model/feature/
+data/validation/specification identities and123 source references are hash-bound.
+Variance, uncertainty, health and residual probabilities supply no forced direction.
+Software readiness is separate from eligibility. The scientific constructor
+requires complete policy units/horizons/clocks, matching gates and evidence known
+strictly before the fold. Current missing market maximum-age choice stays unknown.
+Ticks identity remains ticks-2e173ef8e61bd240; saved metadata729,244,369 rows/281
+partitions, current tick-manifest hash independently checked; no full data scan.
+Four reserved access logs including interruption/repeat records remain unchanged.
+
+ALPHA_PORTFOLIO_V001 frozen before portfolio outcomes. V002 improved source binding
+but still used older Stage13 IDs. V003 corrects actual upstream fit references and
+explicit policy completeness under the original eligibility rule. All versions
+remain. Candidate family, methods, research lot budget, evaluation periods and
+acceptance unchanged; no search expansion after losses. Replays are repeated
+software studies, not independent model trials or new selection significance.
+
+Implemented8 modules: versioned registry/plan, comparable signed unit-budget
+intents, observed-bar sign policy adapters, prior-only covariance and constrained
+allocation, streaming timing/expiry, shared Stage12 target account, reconciled
+entry-owner attribution, serialized restart and bounded sequential reports.
+Equal and one minimum-variance alternative only; fixed half-sample/half-diagonal
+shrinkage, preceding32 aligned 5-minute standalone fixed-capital returns, >=16
+complete rows, recorded equal fallback. No expected-return/Kelly/leverage optimizer.
+First/last half-window covariance sensitivity is descriptive. Forecast correlation
+unavailable in the intent-only fixture; signal/return correlation and negative
+co-loss frequency are distinct, with tail inference explicitly unavailable.
+Shared XAUUSD exposure does not establish diversification. No IID errors/Sharpe.
+
+Stage12 remains the only execution/accounting engine. Added public target API and
+variable full-fill quantities: opposing intents net before orders; resize/reversal
+fully closes then opens on a later quote. Pending entry changes cancel, pending
+exits remain; expiry/gap failures retry at the next event. All quote-side, latency,
+TTL, financing and cost arithmetic retained. Time-in-position is separate from
+lot-seconds for valid variable-size time-exposure fractions. All costs/cash/marks
+attribute under frozen entry-supporter shares and reconcile; counterfactual
+standalone sleeves are never summed as executable equity. No margin/partial-fill
+or production-risk support implied. Synthetic worked examples are in the strategy
+specification; no evidence-supported trading strategy has been selected.
+
+Executed CLI commands (`.venv\Scripts\python.exe -m xauusd_quant.cli`):
+- `portfolio-plan` and `alpha-registry`:V001/V002/V003 retained, currentV003.
+- `portfolio-smoke --run-id PORTFOLIO_SMOKE_V001`:16 completed operations,
+  2.5006sec,338,440,192 private bytes; representative smoke before further replay.
+- V002 smoke:16 completed,2.7878sec,338,169,856 private bytes.
+- V003 smoke:16 completed,2.9110sec,338,219,008 private bytes, after hash repair.
+- Final `portfolio-smoke --run-id PORTFOLIO_SMOKE_V004`:16 completed,
+  4.7103sec,338,960,384 private bytes; final source/registry identities.
+- `portfolio-evaluate --run-id PORTFOLIO_INACTIVE_V001`:1 completed,
+  1.5178sec,302,276,608 private bytes. V002:.4610sec,302,706,688 bytes.
+- Final `portfolio-evaluate --run-id PORTFOLIO_INACTIVE_V003`:1 completed,
+  .5652sec,302,485,504 private bytes; NO_ELIGIBLE_ALPHAS, no market loader called.
+Own Windows process counters, not total machine memory. Each smoke caches two
+prior standalone return streams and retains all14 two-fold comparisons: no trade,
+each standalone, equal, minimum variance, both equal removal-of-one descriptions,
+base/adverse costs. Same prior training cache at both weight updates, no outer
+outcomes fit weights. Sequential, <=24 operations, <=10,000 events/operation,
+120sec/1GiB declared budgets; no full suite or historical training rerun.
+
+Synthetic IID-increment price findings: all active policies have negative closed
+net PnL. 5m/15m/equal base=-6.3712/-3.3553/-4.2864 account units; adverse
+commission/slippage=-8.5712/-3.9553/-5.2864. Minimum-variance weights
+.535887/.464113 produce the same fills as equal after lot rounding; no diversification
+claim or chosen subset. Some open standalone cutoff marks are unknown from quote
+age, not zero or filled forward. Synthetic losses cannot reject/promote a market
+candidate. Conditional covariance is descriptive; portfolio discovery uncertainty
+and prospective validity unassessed. Real eligible candidates: none.
+
+Independent verification caught a new allocation-envelope bug: datetime hashes
+used str() while the JSON writer used ISO format. V001/V002 metadata and failed
+FINAL_VERIFICATION_V001.json preserved. Freeze now hashes exactly the common
+writer representation; regression verifies read-back/reuse and mutation catches
+its removal. Later source-bound replays did not change outcomes or acceptance.
+An early test invocation had2 pass/4 setup errors because its explicit temp parent
+was absent; creating the parent yielded6 pass. Workspace scratch was preserved
+under results/alpha_portfolio/test_scratch_preserved_V001; no unrelated files moved.
+
+Final verification commands/outcomes:
+- `.venv\Scripts\python.exe -m pytest tests/test_alpha_portfolio_account.py
+  tests/test_alpha_portfolio_causality.py tests/test_alpha_portfolio_framework.py
+  tests/test_execution_engine.py tests/test_execution_io.py
+  tests/test_execution_readiness.py tests/test_stage12_audit_repairs.py
+  tests/test_final_test_isolation.py tests/test_prediction_contract.py
+  tests/test_strategy_execution.py tests/test_strategy_chronology.py
+  tests/test_strategy_framework.py tests/test_strategy_source.py
+  tests/test_robustness_statistics.py tests/test_robustness_framework.py
+  tests/test_robustness_execution.py tests/test_robustness_econometric_controls.py
+  tests/test_robustness_source_identity.py -q -p no:cacheprovider
+  --basetemp results/alpha_portfolio/test_scratch_V006`:237 passed/36.77sec.
+  Earlier broad235 passed/63.29sec; latest Stage15-only47 passed/1.05sec with
+  `--basetemp results/alpha_portfolio/test_scratch_V007` (overlapping tests).
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:clean.
+  `.venv\Scripts\python.exe -m mypy src`:clean,237 source files.
+- `.venv\Scripts\python.exe scripts/check_portfolio_guards.py --output
+  results/alpha_portfolio/GUARD_MUTATIONS_V001.json`:34/51 detected;17 child
+  setups obstructed by Windows temp permissions, correctly not called passes.
+  Approved outside-sandbox V002 detected51/51; V003 detected52/52, including
+  serialized timestamp identity. Final V004 detected54/54, including complete
+  policy contract and corrected-fit inventory. Source restored/unchanged each.
+- `.venv\Scripts\python.exe scripts/verify_portfolio.py --run-id
+  PORTFOLIO_SMOKE_V004 --run-id PORTFOLIO_INACTIVE_V003 --output
+  results/alpha_portfolio/FINAL_VERIFICATION_V003.json`:passed.334 fills,
+  162 closed trades,7,582 cash flows,40 matched cost comparisons; cash/cost/sleeve
+  reconciliation, strictly subsequent fills, prior information, complete ledgers,
+  frozen JSON identities, current source,123 upstream evidence hashes, actual
+  tick manifest and unchanged access logs. V002 verification on smokeV003/inactiveV002
+  also passed; failedV001 retained. Saved records only, no new market outcomes.
+
+Changed22 source/config/documentation/test files (UTF-8 without BOM):
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md.
+- config/alpha_portfolio.yaml.
+- docs/stage15_alpha_portfolio.md, docs/stage15_strategy_specification.md.
+- src/xauusd_quant/cli.py, src/xauusd_quant/execution/engine.py.
+- src/xauusd_quant/alpha_portfolio/__init__.py, plan.py, registry.py, allocation.py,
+  intents.py, portfolio.py, studies.py, runs.py.
+- tests/test_alpha_portfolio_account.py, tests/test_alpha_portfolio_causality.py,
+  tests/test_alpha_portfolio_framework.py.
+- scripts/check_portfolio_guards.py, scripts/verify_portfolio.py.
+Local ignored results/alpha_portfolio contains all immutable artifacts, streamed
+records, specifications, source versions, failed attempts and verification.
+No result/data deletion or historical conclusion overwrite. Stop after Stage15.
+Final `git diff --check` clean; all22 source/config/doc/test changes remain
+uncommitted, HEAD unchanged at fde1c79. Final Ruff and mypy checks remained clean.
+
+## 2026-10-04 - Stage #15 commit and push authorization
+
+The user separately requested `commit and push` after Stage #15 completion.
+This authorizes committing and pushing the 22 Stage #15 source, configuration,
+test and documentation files. Broker, deployment and Stage #16 restrictions remain.
+Pre-commit inspection confirms `main`, the expected GitHub origin, no unrelated
+changes and a clean `git diff --check`. Data and local research artifacts remain
+ignored. The preceding targeted tests, guard audits, lint, typing and independent
+record verification remain the validation evidence for the unchanged code.

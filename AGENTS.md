@@ -6,7 +6,13 @@ This repository is a research codebase for XAUUSD (gold) tick data. Read
 the short version for an agent asked to draft or review a piece of it. Where
 the two differ, `CLAUDE.md` wins.
 
-## Scope - research forecasts and authorized offline Stages #12-#14
+## Scope - research forecasts and authorized offline Stages #12-#15
+
+Prompt #15 (2026-10-04) authorizes bounded offline alpha registries, causal policy
+combination and one shared Stage #12 account. Missing eligibility keeps the
+portfolio inactive. Historical stopping rules below are superseded only for
+this extension. No broker, demo/live orders, deployment, commits, pushes or
+automatic Stage #16. See `docs/stage15_alpha_portfolio.md`.
 
 Prompt #14 (2026-10-04) authorizes bounded offline robustness: immutable plans,
 selection inventories, assumption-aware statistics, dependence-aware uncertainty,

@@ -2,6 +2,14 @@
 
 ## Scope discipline
 
+**Stage #15 authorization (2026-10-04):** bounded offline alpha registration,
+causal normalized exposure intents, frozen allocations and shared Stage #12
+execution/accounting. Stage #14's actual empty eligible universe stays inactive;
+synthetic fixtures are software evidence only. Reuse chronological/evidence
+guards; no reserved 2022+ outcomes, broker, demo/live orders, deployment,
+commit/push or automatic Stage #16. Earlier stopping rules are historical.
+See `docs/stage15_alpha_portfolio.md` for actual runs and strategy limitations.
+
 **Stage #14 authorization (2026-10-04):** Prompt #14 authorizes bounded offline
 robustness, selection-exposure reconstruction, complete-family corrections when
 valid inputs exist, dependence-aware conditional uncertainty, synthetic discovery
