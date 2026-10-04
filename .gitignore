@@ -63,6 +63,10 @@ htmlcov/
 .env
 .env.local
 
+# Stage17 local broker identity and private runtime captures/checkpoints
+config/local/
+runtime/
+
 # OS / editor
 .DS_Store
 Thumbs.db

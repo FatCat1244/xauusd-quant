@@ -155,6 +155,11 @@ class RiskPortfolio(Portfolio):
         if a is None or i is None or p is None:
             return
         q = quote or self.engine.last_quote
+        if quote is None and self.market is not None and self.market.received_utc <= at:
+            # The quote is available now, before same-event target checks/fills.
+            # Earlier expiry timers run before _prepare_quote and cannot read it.
+            q = Quote(self.market.received_utc, self.market.received_utc.replace(tzinfo=None),
+                      self.market.bid, self.market.ask, 0, self.market.event_utc)
         position = self.engine.position
         current = position.direction * position.quantity_lots if position else 0.0
         equity: float | None = self.engine.cash
@@ -223,6 +228,10 @@ class RiskPortfolio(Portfolio):
                 self._sync_account(event.timestamp_utc, event)
             if p.limit_response == "flatten" and self.engine.position is not None:
                 self._emergency_close(event.timestamp_utc)
+
+    def _prepare_quote(self, event: Quote) -> None:
+        self.market = MarketSnapshot(event.quoted_at_utc or event.timestamp_utc,
+                                     event.timestamp_utc, event.bid, event.ask)
 
     def _emergency_close(self, at: datetime) -> None:
         self.request_number += 1

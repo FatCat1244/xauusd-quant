@@ -2,6 +2,19 @@
 
 ## Scope discipline
 
+**Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
+identity, official read-only market/account metadata APIs, bounded capture,
+causal UTC streaming and local shadow diagnostics are authorized. The shadow
+adapter cannot send, modify, cancel or close broker orders. Keep the actual
+empty eligible universe and unconfigured risk policy inactive. Historical
+stopping rules below are superseded only for this extension; reserved historical
+data isolation remains. New Exness captures are a separate feed, never access
+to the historical reserved dataset. Stop after Stage #17, no deployment or
+automatic Stage #18. The user explicitly authorizes commit/push and prefers
+commit/push of future completed implementation stages after appropriate checks;
+this supersedes earlier Git prohibitions, not scientific or broker safeguards.
+See `docs/stage17_shadow.md` for actual validation and missing prerequisites.
+
 **Stage #16 authorization (2026-10-04):** offline production-oriented risk
 software, explicit account/instrument units, conservative reservations, health
 and loss gates, persisted halts and bounded synthetic replay through Stage #12.

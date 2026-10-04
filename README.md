@@ -2,7 +2,7 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Fifteen offline stages plus a bounded econometric extension: nine descriptive,
+Sixteen offline stages plus a bounded econometric extension: nine descriptive,
 two predictive, execution, chronological strategy validation, robustness and
 alpha-portfolio infrastructure. No alpha currently qualifies for portfolio research.
 Forecast contracts remain prediction-only:
@@ -70,7 +70,12 @@ Forecast contracts remain prediction-only:
 16. **Offline production-oriented risk engine** - authoritative sizing and unit
     contracts, health/loss limits, conservative order reservations, persistent
     halts and bounded replay. Actual operation remains unconfigured and inactive.
-    See [Stage #16](docs/stage16_risk_engine.md). Stop before Stage #17.
+    See [Stage #16](docs/stage16_risk_engine.md).
+
+17. **Read-only Exness demo feed and shadow framework** - explicit terminal/demo
+    identity, bounded UTC tick capture, causal bars/features, restartable cursors,
+    recorded replay and guarded local simulation. No eligible strategy is active.
+    See [Stage #17](docs/stage17_shadow.md). Broker orders remain unavailable.
 
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
@@ -78,8 +83,9 @@ The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 > **Prompts #12-#16 authorize offline research, backtesting, validation and risk software only.** The separate execution
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
-> remain probabilities and expected values; broker connectivity, demo/live trading
-> and deployment remain prohibited. See [Stage #12](docs/stage12_execution.md).
+> remain probabilities and expected values. Prompt #17 separately authorizes
+> explicit read-only Exness demo connectivity and local shadow work; broker orders
+> and deployment remain prohibited. See [Stage #17](docs/stage17_shadow.md).
 
 ---
 
@@ -2866,3 +2872,29 @@ reconciliation and explicit rearming are validated with synthetic fixtures.
 Actual settings remain **UNCONFIGURED** and the universe **NO_ELIGIBLE_ALPHAS**;
 no real-data portfolio replay or evidence-supported strategy operation.
 See [risk specification and commands](docs/stage16_risk_engine.md).
+
+## Stage #17 read-only Exness shadow integration
+
+Stage17 adds optional official MT5 reads behind explicit demo identity checks,
+bounded occurrence-preserving capture, completed UTC bars, feature diagnostics,
+checkpoints and recorded-feed replay. Native calls use an owned bounded worker;
+the broker adapter has no trading methods. Local hypothetical execution reuses
+the Stage12 account and mandatory Stage16 risk boundary.
+
+Actual strategy status remains **NO_ELIGIBLE_ALPHAS / RISK_UNCONFIGURED**.
+Synthetic capture/replay and causal risk-governed fixtures validate software;
+they do not establish actual feed transfer, model equality or Stage18 readiness.
+An explicit local configuration is required for native observation.
+
+```powershell
+xq shadow-validate --run-id SHADOW_READY_V001
+xq shadow-preflight --shadow-config config/local/shadow.yaml --run-id EXNESS_PREFLIGHT_V001
+xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTURE_V001
+.venv\Scripts\python.exe scripts/verify_shadow.py --run-id SHADOW_SYNTHETIC_V003
+```
+
+See the [Stage17 architecture, validation record and Windows runbook](docs/stage17_shadow.md).
+Keep identities in ignored `config/local/`; captures, checkpoints, runtime logs,
+model binaries and datasets stay local. The user authorizes commit/push after
+checks for this stage and prefers that workflow for future completed stages.
+Stop here; actual demo orders require separate Stage18 authorization.

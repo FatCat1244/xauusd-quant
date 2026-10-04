@@ -242,6 +242,13 @@ class Portfolio:
     def _consume_quote(self, event: Quote) -> None:
         self.engine.consume([event])
 
+    def _prepare_quote(self, _event: Quote) -> None:
+        """Expose a newly available quote to risk before same-event target checks.
+
+        Expiry timers at earlier timestamps have already run. This hook does
+        not fill orders or expose the quote to any earlier decision.
+        """
+
     def _expire_until(self, at: datetime) -> None:
         # Run timers at their exact expiry even when no quote arrives.
         while self.intents:
@@ -279,6 +286,7 @@ class Portfolio:
                 self.record("exposure_intents", event.resolved())
                 self._combine(at, "intent")
             else:
+                self._prepare_quote(event)
                 self._combine(at, "quote")
                 self._consume_quote(event)
                 # After close: submit replacement, which cannot use this same quote.

@@ -752,6 +752,18 @@ def build_parser() -> argparse.ArgumentParser:
         if command != "risk-plan":
             p_risk.add_argument("--run-id", required=True)
 
+    for command in ("shadow-validate", "shadow-preflight", "shadow-capture", "shadow-run",
+                    "shadow-replay", "shadow-compare"):
+        p_shadow = sub.add_parser(command, help="Stage17 read-only demo feed/shadow diagnostics")
+        p_shadow.add_argument("--shadow-config", type=Path, default=None)
+        p_shadow.add_argument("--run-id", required=command != "shadow-validate")
+        if command in ("shadow-capture", "shadow-run"):
+            p_shadow.add_argument("--resume", type=Path, default=None)
+        if command in ("shadow-replay", "shadow-compare"):
+            p_shadow.add_argument("--recorded", type=Path, required=True)
+        if command == "shadow-compare":
+            p_shadow.add_argument("--replayed", type=Path, required=True)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3605,6 +3617,12 @@ def cmd_risk(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_shadow(config: Config, args: argparse.Namespace) -> int:
+    from .shadow.runs import cli_command
+
+    return cli_command(config, args)
+
+
 def cmd_econometrics(config: Config, args: argparse.Namespace) -> int:
     """Lazy Stage 13.5 entry; offline diagnostics, unchanged prediction contracts."""
     from .econometrics.runs import cli_command
@@ -3663,6 +3681,12 @@ COMMANDS = {
     "risk-plan": cmd_risk,
     "risk-readiness": cmd_risk,
     "risk-replay": cmd_risk,
+    "shadow-validate": cmd_shadow,
+    "shadow-preflight": cmd_shadow,
+    "shadow-capture": cmd_shadow,
+    "shadow-run": cmd_shadow,
+    "shadow-replay": cmd_shadow,
+    "shadow-compare": cmd_shadow,
     "econometric-plan": cmd_econometrics,
     "econometric-readiness": cmd_econometrics,
     "econometric-smoke": cmd_econometrics,

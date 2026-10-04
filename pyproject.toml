@@ -23,6 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+mt5 = ["MetaTrader5==5.0.6231 ; sys_platform == 'win32'"]
 # The core pipeline (ticks -> Parquet -> bars -> queries) needs none of these.
 # `xauusd_quant.research` does, and the CLI imports it lazily so that
 # `xq convert` still works on a bare install.

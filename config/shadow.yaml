@@ -1,0 +1,21 @@
+# Public UNCONFIGURED template. Copy into ignored config/local/shadow.yaml.
+# Use an already-authenticated Exness demo terminal; never put passwords here.
+configuration_id: SHADOW_CAPTURE_V001
+terminal_path: null
+expected_login: null
+expected_server: null
+expected_company: null
+symbol: null
+timeframes: [5m, 15m]
+batch_size: 2000
+poll_seconds: 1.0
+duration_seconds: 60.0
+max_events: 10000
+max_buffer_ticks: 50000
+backfill_seconds: 900
+lateness_seconds: 0.0
+max_gap_seconds: 30.0
+max_quote_age_seconds: 5.0
+max_future_seconds: 2.0
+reconnect_attempts: 2
+initialize_timeout_ms: 5000

@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Current extension | Stage #16 offline authoritative risk software; 270 targeted tests passed, 19 guards detected; actual UNCONFIGURED/BLOCKED/NO_ELIGIBLE_ALPHAS; synthetic validation only; historical selection uncertainty retained; stop before #17 |
+| Current extension | Stage #17 read-only MT5/shadow framework; 244 targeted tests passed, eight guard breaks detected; synthetic capture/replay equality; actual terminal configuration incomplete, zero eligible alphas and unconfigured risk; no broker connection/orders; stop before #18 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -2462,3 +2462,137 @@ restrictions remain. Pre-commit inspection confirms main, the expected GitHub
 origin, no unrelated changes and a clean `git diff --check`. Data and research
 artifacts remain ignored. The preceding 270 targeted tests, 19 guard mutations,
 lint, typing and saved-record verification validate the unchanged code.
+
+## 2026-10-04/05 - Stage #17 read-only Exness demo integration and shadow framework
+
+Prompt #17 explicitly authorizes read-only connectivity to a configured Exness
+demo terminal, bounded capture, causal shadow operation and commit/push after
+checks. This supersedes older connectivity/Git prohibitions for this scope only.
+The user also requests future completed implementation stages be committed and
+pushed after appropriate checks. Broker orders, deployment and automatic Stage18
+remain prohibited. Initial main/898cae8452bef9499e589ae6d7576174b1c5f796 and the
+expected private origin were verified; the working tree was clean.
+
+Inspected actual Stage12-16 source, contracts, saved manifests and documentation.
+Stage15 ALPHA_REGISTRY_V003 contains66 candidates, none eligible; actual Stage16
+risk is RISK_UNCONFIGURED_V001 with missing policy/account/instrument terms.
+Stage14 null/chronology/coverage/execution gates remain unresolved. Inventory
+records37 frozen model and13 ensemble specifications and their metadata hashes;
+no historical market-model binary was loaded. Previously recorded metrics were
+not reproduced. Volatility-scaled future_return outputs are not silently treated
+as raw returns. Historical streaming reports using stored regime/context do not
+prove full Exness feature/model compatibility. Historical2022+ remains previously
+inspected and reserved guards/access logs are preserved.
+
+Implemented an optional official MT5 adapter with five fixed read-only verbs,
+explicit authenticated executable/account/server/company/symbol matching and
+independent vendor demo-mode verification. No login/account selection, symbol
+selection, terminal-setting change or broker-order method exists. An owned worker
+bounds vendor reads and cleanup without terminating the user's terminal. Native
+errors and identity fields are sanitized. Official MetaQuotes API/time/account
+documentation and current PyPI wheel availability were checked; only the optional
+Windows MetaTrader5==5.0.6231 dependency is added, not installed here.
+
+Tick ingestion persists ordered full-field occurrence hashes for overlapping UTC
+retrievals, retaining same-time distinct/identical observations. Ambiguous overlap,
+saturated timestamp batches, invalid quotes, late corrections and gaps halt.
+Canonical completed bars retain [open,close) semantics; missing bars are not
+fabricated. Bounded canonical return/ACF/microstructure feature windows restore;
+unsupported recursive/context features remain blocked. Frozen model/ensemble
+load interfaces reuse pinned artifact and specification checks. The causal binding
+supports multi-frequency alphas, delayed availability, explicit diagnostic state,
+portfolio netting and authoritative Stage16 risk through Stage12 local execution.
+Native CLI remains capture/blocked diagnostics because actual strategy inputs
+are unqualified; synthetic bindings are confined to offline fixtures.
+
+Direct integration repair: publish the incoming quote to same-event risk checks
+before target reevaluation, after prior expiry timers. Previously sparse ticks
+could cancel a pending order against a stale previous quote. Current available
+quotes now mark the account; strictly later fill timing and risk capability guards
+are preserved. Prior artifacts/conclusions are retained, not silently revised.
+
+Records/checkpoints bind code/configuration, occurrence cursor, bar/feature/model/
+policy/diagnostic state, governed account/risk state when present and audit-prefix
+hash. New-run resume requires compatible state and retains continuity/risk halts.
+Storage failures, clock errors, overload and failed continuity stop processing.
+Backfill never creates retrospective live actions or local fills. Broker snapshots
+remain separate from synthetic accounting. Shadow fills are hypothetical and
+assumed costs are not measured Exness execution. Streaming/replay comparison uses
+the same recorded publication clocks with declared feature/prediction tolerances.
+
+Actual bounded studies/checks (local results are ignored and versioned):
+
+- `.venv\Scripts\python.exe scripts/verify_shadow.py --run-id SHADOW_SYNTHETIC_V001`:
+  earlier source-bound study preserved;2.59sec,245309440 peak working-set bytes.
+- Same command with `SHADOW_SYNTHETIC_V002`: final code identity
+  `4b1b03de3cfbc58b657770ad3e2383af73a663c6d7e554913b276b5c236b0184`;
+  synthetic adapter36 ticks/180 synthetic seconds/two1m completed bars;
+  recorded replay equals monitoring bars/features/blocked actions. Separate fixed
+  governed fixture26 ticks/four bars/four predictions/58 risk decisions/one local
+  hypothetical entry fill; cash and sleeve attribution reconcile. The position
+  remains simulated; no completed round trip is claimed. Flat and missing-health
+  controls produce no fills.2.3645337sec actual wall;245497856 peak working-set,
+  690302976 private,691593216 peak-commit bytes for the own process. No native
+  connectivity, actual-model equality, market study or profitability claim.
+- `.venv\Scripts\python.exe -m xauusd_quant.cli shadow-validate --run-id
+  SHADOW_READINESS_V001`: configuration syntax valid, scientifically BLOCKED,
+  NO_ELIGIBLE_ALPHAS, risk unconfigured, native package absent; saved readiness,
+  frozen validation plan and metadata inventory. Public configuration has all
+  five terminal identity fields null. A blank ignored config/local/shadow.yaml
+  was created for local configuration; the user supplied an MQL5/Experts folder,
+  which is neither terminal64.exe nor an explicit identity configuration.
+- `.venv\Scripts\python.exe scripts/check_shadow_guards.py --output
+  results/shadow/GUARD_MUTATIONS_V001.json`: first attempt failed; two isolated
+  tests hit temporary-directory permissions, and the publication canary was masked
+  by another clock guard. The failed artifact remains. Strengthened independent
+  first-publication canary. V002 and final V003 each detect8/8 deliberate breaks:
+  demo identity, forbidden order trap, occurrence overlap, publication timing,
+  alpha eligibility, authoritative risk, reserved-period access and current-quote
+  ordering. Original source bytes remain unchanged; mutations occur in isolated
+  copies. V003 uses the final implementation.
+- Final targeted test command:
+  `.venv\Scripts\python.exe -m pytest tests/test_shadow_adapter.py
+  tests/test_shadow_ingestion.py tests/test_shadow_streaming.py
+  tests/test_shadow_models.py tests/test_shadow_pipeline.py
+  tests/test_shadow_runs.py tests/test_shadow_worker.py
+  tests/test_alpha_portfolio_account.py tests/test_alpha_portfolio_causality.py
+  tests/test_alpha_portfolio_framework.py tests/test_risk_decisions.py
+  tests/test_risk_framework.py tests/test_risk_portfolio.py tests/test_risk_state.py
+  tests/test_execution_engine.py tests/test_execution_io.py
+  tests/test_execution_readiness.py tests/test_final_test_isolation.py
+  -q -p no:cacheprovider`:244 passed in18.33sec. Earlier244/20.88sec is an
+  overlapping run, not another244 distinct tests. Full suite was not run.
+- `.venv\Scripts\ruff.exe check src tests scripts`:clean.
+  `.venv\Scripts\mypy.exe src/xauusd_quant`:clean,253 source files.
+  `git diff --check`:clean. Final verification records source/study/guard hashes,
+  checks and unchanged reserved-access evidence under results/shadow.
+- `.venv\Scripts\python.exe results/shadow/verify_final_local.py`: first local
+  helper incorrectly indexed the already-unwrapped immutable body and failed
+  with KeyError before writing a verdict. Corrected the helper; final invocation
+  passed and wrote FINAL_VERIFICATION_V001.json. Study/source and fixture hashes
+  match, all8 guard breaks are detected, reserved logs and upstream evidence hashes
+  are unchanged; local terminal configuration remains incomplete. The helper and
+  verification artifact remain ignored local research records.
+
+Changed files:
+
+- .gitignore, AGENTS.md, CLAUDE.md, README.md, WORKLOG.md, pyproject.toml.
+- config/shadow.yaml; docs/stage17_shadow.md.
+- src/xauusd_quant/cli.py; alpha_portfolio/portfolio.py; risk/portfolio.py.
+- src/xauusd_quant/shadow/__init__.py, config.py, adapter.py, worker.py,
+  ingestion.py, bars.py, features.py, models.py, pipeline.py, runs.py.
+- scripts/check_shadow_guards.py, scripts/verify_shadow.py.
+- tests/shadow_synth.py, test_shadow_adapter.py, test_shadow_ingestion.py,
+  test_shadow_streaming.py, test_shadow_models.py, test_shadow_pipeline.py,
+  test_shadow_runs.py, test_shadow_worker.py.
+
+No terminal initialization, broker connection, actual Exness recording or live
+observation occurred. Local explicit executable/demo identity/exact symbol and
+optional package are required for read-only observation. Eligibility, compatible
+features/context, feed transfer, supplied risk/account/instrument/cost settings,
+diagnostic health and full recorded-feed equality are separate strategy blockers.
+No Stage18 readiness or evidence-supported strategy is asserted. All failed and
+historical artifacts remain local. Git review includes only explicit intended
+source/config/test/doc paths, excluding local identity config, ticks, logs, model
+binaries and data. Commit/push is authorized for this completed framework only;
+final delivery records the commit and verified remote branch. Stop after Stage17.

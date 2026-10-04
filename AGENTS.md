@@ -6,7 +6,16 @@ This repository is a research codebase for XAUUSD (gold) tick data. Read
 the short version for an agent asked to draft or review a piece of it. Where
 the two differ, `CLAUDE.md` wins.
 
-## Scope - research forecasts and authorized offline Stages #12-#16
+## Scope - research forecasts, offline Stages #12-#16 and read-only Stage #17
+
+Prompt #17 (2026-10-04) explicitly authorizes configured Exness MT5 demo reads,
+causal streaming and local shadow simulation. Broker order operations remain
+prohibited, including submission, modification, cancellation and closing.
+No eligible alpha exists and actual risk settings remain unconfigured. Stop
+after Stage #17; no deployment or automatic Stage #18. Commit and push this
+stage after appropriate checks; the user also prefers this for future completed
+implementation stages. This overrides earlier commit/push prohibitions only;
+other safeguards remain. See `docs/stage17_shadow.md`.
 
 Prompt #16 (2026-10-04) authorizes an authoritative risk boundary, explicit unit
 and sizing contracts, persistent fail-safe state, and bounded synthetic offline
@@ -98,6 +107,6 @@ demo/live orders, deployment, commits and pushes remain prohibited. See
 ## Working on a task
 
 - Change only what the task asks; report every file you touched.
-- Do not commit; do not delete results or data.
+- Commit/push authorized completed Stage #17 paths after checks. Do not delete results or data.
 - When reviewing, look first for look-ahead, leakage into 2022+, fits on
   scored rows, NaN reaching a verdict, and silent fills of missing values.
