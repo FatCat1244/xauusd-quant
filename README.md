@@ -2888,12 +2888,15 @@ An explicit local configuration is required for native observation.
 
 ```powershell
 xq shadow-validate --run-id SHADOW_READY_V001
-xq shadow-preflight --shadow-config config/local/shadow.yaml --run-id EXNESS_PREFLIGHT_V001
-xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTURE_V001
+xq shadow-preflight --shadow-config config/local/shadow.yaml --run-id EXNESS_PREFLIGHT_V002
+xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTURE_V002
 .venv\Scripts\python.exe scripts/verify_shadow.py --run-id SHADOW_SYNTHETIC_V003
 ```
 
 See the [Stage17 architecture, validation record and Windows runbook](docs/stage17_shadow.md).
+The configured native demo preflight passed. A bounded capture returned zero
+ticks/bars and non-fresh quotes; fresh live processing remains unvalidated, and
+comparison of its empty replay does not establish pipeline equality.
 Keep identities in ignored `config/local/`; captures, checkpoints, runtime logs,
 model binaries and datasets stay local. The user authorizes commit/push after
 checks for this stage and prefers that workflow for future completed stages.

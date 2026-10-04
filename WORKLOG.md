@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Current extension | Stage #17 read-only MT5/shadow framework; 244 targeted tests passed, eight guard breaks detected; synthetic capture/replay equality; actual terminal configuration incomplete, zero eligible alphas and unconfigured risk; no broker connection/orders; stop before #18 |
+| Current extension | Stage #17 read-only MT5/shadow framework; 244 targeted tests passed, eight guard breaks detected; synthetic equality and native demo identity verified; bounded native capture returned zero ticks/bars, fresh live path unvalidated; zero eligible alphas/unconfigured risk; no broker orders; stop before #18 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -2596,3 +2596,63 @@ historical artifacts remain local. Git review includes only explicit intended
 source/config/test/doc paths, excluding local identity config, ticks, logs, model
 binaries and data. Commit/push is authorized for this completed framework only;
 final delivery records the commit and verified remote branch. Stop after Stage17.
+
+## 2026-10-05 - Stage #17 configured demo preflight and bounded native observation
+
+Initial Stage17 framework was committed as9629f23d713fc00a2bba28ee35022a072dbf88d3
+and pushed to main; GitHub branch hash was verified and the tree was clean.
+The user then supplied terminal identity values and asked about company matching
+and the next step. They had edited config/shadow.yaml. The values were moved into
+ignored config/local/shadow.yaml, the supplied company identity used there, and
+the tracked public template restored. No private values entered a commit or log.
+On a subsequent question the on-disk local configuration was rechecked as complete;
+only the public template retained null fields. No environment substitution added.
+
+Installed only MetaTrader5==5.0.6231 with `--no-deps`; the first sandbox invocation
+failed with forbidden socket access, and the explicitly approved retry succeeded.
+No unrelated dependencies were upgraded. Read-only preflight used the existing
+owned worker and verified exact configured terminal/account/company/symbol plus
+vendor demo mode. No broker execution method was called. Preflight disconnected
+after completion; successful connection does not mean a background session remains.
+
+Actual commands, prefixed `.venv\Scripts\python.exe -m xauusd_quant.cli`:
+
+- `shadow-preflight --shadow-config config/local/shadow.yaml --run-id
+  EXNESS_PREFLIGHT_V001`:exit0, identity_verified and demo_mode_verified true.
+- `shadow-capture --shadow-config config/local/shadow.yaml --run-id
+  EXNESS_CAPTURE_V001`:exit0, completed configured60-second budget, measured
+  capture section57.7818274sec,57 polls, zero reconnections, zero accepted ticks,
+  zero fresh ticks and zero bars.57 NO_FRESH_LIVE_QUOTE and57
+  EMPTY_OR_REPEATED_BATCH health records. No source coverage exists. Peak own
+  working set232964096/private666083328 bytes, worker memory not measured.
+  This establishes terminal connectivity and bounded shutdown only; fresh live
+  data observation remains false. Market-closure cause was not established.
+- `shadow-replay --shadow-config config/local/shadow.yaml --recorded
+  results/shadow/runs/EXNESS_CAPTURE_V001 --run-id EXNESS_REPLAY_V001`:exit0,
+  zero batches/ticks/bars. Captured audit SHA256
+  abebde0cab58cb2611cbc977fd8e505441ba45e0ceae6dd053f7aec67a2ae978.
+- `shadow-compare --shadow-config config/local/shadow.yaml --recorded
+  results/shadow/runs/EXNESS_CAPTURE_V001 --replayed
+  results/shadow/runs/EXNESS_REPLAY_V001 --run-id EXNESS_EQUALITY_V001`:exit0,
+  equal empty observation tables, zero mismatches, full_model_equality and
+  full_pipeline_equality false. Empty equality is not processing validation.
+- `shadow-validate --shadow-config config/local/shadow.yaml --run-id
+  SHADOW_TERMINAL_READINESS_V001`:exit0, no missing terminal fields, native
+  package installed; strategy BLOCKED/NO_ELIGIBLE_ALPHAS/risk unconfigured.
+
+Code identity4b1b03de3cfbc58b657770ad3e2383af73a663c6d7e554913b276b5c236b0184
+matches the final synthetic validation, and no source was changed while capture
+ran. No forecasts, sleeve intents, risk-approved actions, shadow fills or broker
+orders were produced. Run artifacts, local configuration and checkpoints remain
+ignored; no captured values are published. Existing failed/synthetic artifacts
+remain intact. Native manifest and source identities, health counts and unchanged
+reserved-access evidence were checked in NATIVE_VERIFICATION_V001 locally.
+
+Only README.md, WORKLOG.md and docs/stage17_shadow.md change for this validation update.
+CLI examples use fresh versioned native run IDs. `git diff --check` passed;
+no code change warrants repeating the already-passed244 tests, lint or typing.
+Documentation is committed/pushed under the user's Stage17 authorization and
+future-stage Git preference. Next: bounded non-empty capture during updating
+quotes, followed by actual recording replay equality; scientific eligibility,
+feed compatibility and supplied risk/account/cost terms remain separate blockers.
+No broker orders or automatic Stage18. Stop after Stage17.

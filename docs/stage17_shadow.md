@@ -190,11 +190,11 @@ does not implement credential login; authenticate locally in the terminal.
 
 ```powershell
 xq shadow-validate --shadow-config config/local/shadow.yaml --run-id SHADOW_READY_V001
-xq shadow-preflight --shadow-config config/local/shadow.yaml --run-id EXNESS_PREFLIGHT_V001
-xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTURE_V001
+xq shadow-preflight --shadow-config config/local/shadow.yaml --run-id EXNESS_PREFLIGHT_V002
+xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTURE_V002
 xq shadow-run --shadow-config config/local/shadow.yaml --run-id EXNESS_SHADOW_V001
-xq shadow-replay --shadow-config config/local/shadow.yaml --recorded results/shadow/runs/EXNESS_CAPTURE_V001 --run-id EXNESS_REPLAY_V001
-xq shadow-compare --shadow-config config/local/shadow.yaml --recorded results/shadow/runs/EXNESS_CAPTURE_V001 --replayed results/shadow/runs/EXNESS_REPLAY_V001 --run-id EXNESS_EQUALITY_V001
+xq shadow-replay --shadow-config config/local/shadow.yaml --recorded results/shadow/runs/EXNESS_CAPTURE_V002 --run-id EXNESS_REPLAY_V002
+xq shadow-compare --shadow-config config/local/shadow.yaml --recorded results/shadow/runs/EXNESS_CAPTURE_V002 --replayed results/shadow/runs/EXNESS_REPLAY_V002 --run-id EXNESS_EQUALITY_V002
 ```
 
 Set duration/event limits in the local configuration before starting. Compare
@@ -229,10 +229,42 @@ Ruff and mypy cover the repository; the full historical test suite was not run.
 No native connection or live observation is established by the synthetic study.
 The user supplied an Experts directory, which does not specify expected account
 identity or the executable. An ignored unconfigured local template was created;
-native observation remains dependent on completion of that configuration and
-optional-package availability. Actual model equality, eligible strategy replay,
+at initial delivery native observation remained dependent on that configuration
+and optional-package availability. Actual model equality, eligible strategy replay,
 broker-specific economics and Stage18 readiness remain blocked. Reserved historical
 access logs and prior failed research are preserved.
+
+### Subsequent configured-terminal check, 2026-10-05 local time
+
+After the user supplied local identity values, they were moved from the tracked
+template to ignored `config/local/shadow.yaml` and the public template restored.
+The exact supplied company identity passed native verification; private account
+values are not included here. The pinned optional package was installed without
+changing other dependencies. Initial installation was blocked by sandbox socket
+permissions; the authorized retry succeeded.
+
+`EXNESS_PREFLIGHT_V001` verified the configured terminal/account/symbol and vendor
+demo mode. `EXNESS_CAPTURE_V001` then completed the configured 60-second budget
+(57.78 seconds in the measured capture section), with 57 retrieval polls, no
+reconnections, **zero ticks and zero bars**. All polls reported a non-fresh quote
+and empty/repeated history. The adapter shut down at completion. Own-process peak
+working set was 232,964,096 bytes and private bytes 666,083,328; worker memory is
+not included. Source identity remained
+`4b1b03de3cfbc58b657770ad3e2383af73a663c6d7e554913b276b5c236b0184`.
+
+`EXNESS_REPLAY_V001` and `EXNESS_EQUALITY_V001` completed on that recording. The
+compared observation tables are empty: equality is therefore uninformative about
+actual tick/bar/feature/model processing. Fresh live observation, actual model
+and full pipeline equality remain **unvalidated**. No market-closure cause was
+established from this result. `SHADOW_TERMINAL_READINESS_V001` records configured
+identity and installed native support while strategy readiness stays BLOCKED:
+NO_ELIGIBLE_ALPHAS, RISK_UNCONFIGURED and FEED_TRANSFER_UNASSESSED. No shadow fill
+or broker order occurred. All runtime artifacts remain ignored/local.
+
+The next data check is another bounded capture with a fresh run ID when quotes
+are updating. Even non-empty capture/replay equality will not qualify an alpha or
+supply missing risk/account/cost settings. Strategy activation and Stage18 remain
+separate blocked gates; do not weaken them to generate signals.
 
 Official primary references checked for API/time/account semantics:
 [MetaQuotes Python integration](https://www.mql5.com/en/docs/python_metatrader5),
