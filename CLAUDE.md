@@ -2,6 +2,18 @@
 
 ## Scope discipline
 
+**Stage #14 authorization (2026-10-04):** Prompt #14 authorizes bounded offline
+robustness, selection-exposure reconstruction, complete-family corrections when
+valid inputs exist, dependence-aware conditional uncertainty, synthetic discovery
+controls, fixed perturbations and scenario replay through Stage #12. Reuse the
+existing accounting, chronological fitting and econometric APIs. Freeze plans
+before diagnostic outcomes; failures remain recorded. Earlier stop-before-#14
+rules below are historical and superseded only for this extension. No broker,
+demo/live orders, deployment, commits/pushes or automatic Stage #15. Reserved
+2022+ remains inspected and inaccessible to this layer. Unknown search history
+and missing scientific gates cannot become a passing statistic. Details and
+actual bounded results: `docs/stage14_robustness.md`.
+
 **Stage #13.5 authorization (2026-10-04):** Prompt #13.5 authorizes a bounded
 offline econometric extension: fixed ARX/GARCH/HAR-style/local-level benchmarks,
 causal filtered state, matured-residual outcome intervals and a health-only

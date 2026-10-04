@@ -1,5 +1,9 @@
 # Stage #13: purged walk-forward strategy validation
 
+This is the preserved Stage #13 record. Prompt #14 now authorizes the bounded
+offline extension described in [Stage #14](stage14_robustness.md); its earlier
+stopping rule below is historical. No broker/deployment authorization is added.
+
 Prompt #13 (2026-10-03) authorizes offline strategy validation using Stage #12.
 Broker/MT5 connections, demo/live orders, deployment and Stage #14 are excluded.
 Forecast contracts stay prediction-only. Historical research and reserved-access

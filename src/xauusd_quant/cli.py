@@ -734,6 +734,12 @@ def build_parser() -> argparse.ArgumentParser:
         if command != "econometric-plan":
             p_econ.add_argument("--run-id", required=True)
 
+    for command in ("robustness-plan", "robustness-inventory", "robustness-smoke", "robustness-evaluate"):
+        p_robust = sub.add_parser(command, help="Stage 14 bounded offline robustness")
+        p_robust.add_argument("--plan", type=Path, default=None)
+        if command != "robustness-plan":
+            p_robust.add_argument("--run-id", required=True)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3569,6 +3575,12 @@ def cmd_strategy_validation(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_robustness(config: Config, args: argparse.Namespace) -> int:
+    from .robustness.runs import cli_command
+
+    return cli_command(config, args)
+
+
 def cmd_econometrics(config: Config, args: argparse.Namespace) -> int:
     """Lazy Stage 13.5 entry; offline diagnostics, unchanged prediction contracts."""
     from .econometrics.runs import cli_command
@@ -3616,6 +3628,10 @@ COMMANDS = {
     "ensemble-freeze": cmd_ensemble_freeze,
     "ensemble-finalize": cmd_ensemble_finalize,
     "ensemble-final-test": cmd_ensemble_final_test,
+    "robustness-plan": cmd_robustness,
+    "robustness-inventory": cmd_robustness,
+    "robustness-smoke": cmd_robustness,
+    "robustness-evaluate": cmd_robustness,
     "econometric-plan": cmd_econometrics,
     "econometric-readiness": cmd_econometrics,
     "econometric-smoke": cmd_econometrics,

@@ -10,7 +10,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 
 ---
 
-## At a glance (2026-10-03)
+## At a glance (2026-10-04)
 
 | Item | State |
 |---|---|
@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Current extension | Stage #13.5 bounded econometric benchmarks and uncertainty; offline only; null/provenance/specification gates remain blocking; stop before #14 |
+| Current extension | Stage #14 bounded robustness framework; offline only; recorded search exposure partial, older searches unknown; candidates blocked, short conditional evidence inconclusive; stop before #15 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -1437,6 +1437,13 @@ individual candidate); "=" means the frozen spec is that model. Reading:
 
 ## Open items
 
+Stage #14: no candidate currently eligible for Stage #15. Required matching
+prior-only random-walk/sign-flip evidence, audited provenance and verified supplied
+execution terms remain missing. Legacy feature/count/universe chronology remains
+unresolved. Saved June 1 development samples cannot support the five-day evidence
+minimum. A larger study needs a new frozen plan; do not expand searches to get a
+passing result. 2022+ is previously inspected, and no uninspected period is proved.
+
 | # | Item | How |
 |---|---|---|
 | 1 | 1m spectral (#5), wavelet (#6) and regime (#7) studies | Heavy (7.9M bars); run alone with the browser closed; wavelet and regimes also need the 1m log-return FFT features first |
@@ -1992,3 +1999,168 @@ Changed files (27 source/config/documentation/test files):
   tests/test_econometric_state.py, tests/test_econometric_uncertainty.py,
   tests/test_econometric_framework.py, tests/test_econometric_source.py.
 - scripts/check_econometric_guards.py.
+
+## 2026-10-04 - Stage #14 bounded robustness and selection exposure
+
+Implemented Prompt #14's explicitly authorized offline extension. Initial tree
+clean; read AGENTS/CLAUDE/WORKLOG, prior-stage docs/code/configs and actual saved
+artifacts before editing. Preserved all prior results, failures and data. No raw
+changes, new market outcome study, reserved outcome values, broker access,
+demo/live orders, deployment, commits/pushes or Stage #15. No cached ML/selection/
+regime source was edited. No research process was active before changes.
+
+Reused Stage12 inventory/hash/resource APIs and accounting, Stage13 immutable
+records, TrialLedger, nested selectors/fits and execute_trial, Stage13.5 losses,
+Kalman/interval/CUSUM APIs. Ten new robustness modules implement immutable plans
+and source-byte identity sidecars; recorded selection inventory; explicit return
+sampling/capital/exposure/compounding/duration/missing/overnight/overlap/dependence/
+annualization conventions; zero-variance unavailable states; complete-family Holm;
+segmented moving blocks; saved fit/maturity/target/loss audit; whole fixed synthetic
+discovery and perturbation controls; causal operational replay, matched costs and
+fixed-population break-even; historical attribution and candidate verdicts.
+No competing engine, IID time-series errors, trade-PnL Sharpe, fabricated effective
+trial count or unsupported named selection statistic. Holm formula checked against
+Goeman/Solari (2010) section3; block resampling against primary author paper/report
+and explicit independent index arithmetic. Primary references/assumptions in docs.
+
+Metadata audit passed: actual281 partition footer files and729,244,369 rows,
+ticks-2e173ef8e61bd240, source size36,233,955,746; same tick-manifest SHA256
+da8d0bfe17a33ca95080e872ac98f8474721616309234e29ce339e2236f4318c.
+Raw/full quote content hashes not recomputed. Current primary frozen/fitted/feature
+identities checked by existing readiness adapter. Actual registry metadata684 ML,
+565 ensemble,330,790 feature tests and389,480 shared ledger rows. Counts are
+registered tests, not independent candidate trials. Historical upstream268 attempts:
+217 completed/51 failed, including the preserved34 misclassified real fixture
+attempts. Upstream synthetic139 attempts separate. Four reserved-access logs hashed,
+including the interrupted ensemble start and authorized repeat; no reserved values.
+Old feature/count/universe chronology unresolved; older searches unknown.
+
+ROBUSTNESS_V001 frozen before new diagnostics. V002 explicitly added fixed synthetic
+Kalman q/window/gamma/CUSUM sensitivities after V001 results to complete the requested
+infrastructure. Market candidates, periods and passing criteria unchanged; no market
+search expansion. Both plans/artifacts retained. V002 content digest:
+e69b2a65819130c0d438b82beb1907934af8968c61dfc99f6a31d7ad7dda7910.
+Source byte hashes are immutable *_SOURCES sidecars, registered before the final
+source-bound analysis. They do not retroactively claim historical outcomes were
+uninspected. All final model/forecast source identities and code/config/dependency
+versions recorded. Resource limits256 operations,25,000 records/file,240sec/1GiB
+checked between operations. Sequential bounded studies; no full suite/heavy research.
+
+Actual CLI commands (`.venv\Scripts\python.exe -m xauusd_quant.cli`):
+- `robustness-plan` initially V001, later V002 through config/robustness.yaml.
+- `robustness-inventory --run-id ROBUST_INVENTORY_V001`:17.2186sec,
+  peak93,507,584/private308,080,640 bytes; metadata/ledgers only.
+- `robustness-smoke --run-id ROBUST_SMOKE_V001`:189 completed operations,
+  16.1150sec, peak92,315,648/private339,288,064 bytes.
+- `robustness-evaluate --run-id ROBUST_HISTORICAL_V001`:18 completed operations,
+  2.9923sec, peak98,283,520/private311,095,296 bytes; saved development losses only.
+- `robustness-smoke --run-id ROBUST_SMOKE_V002`:192 completed,
+  18.5730sec, peak121,200,640/private633,004,032 bytes.
+- Final `robustness-smoke --run-id ROBUST_SMOKE_V003`:192 completed,
+  17.0089sec, peak121,458,688/private633,528,320 bytes. Necessary final replay after
+  strengthening source binding and provenance; no changed market inputs/criteria.
+- Final `robustness-evaluate --run-id ROBUST_HISTORICAL_V002`:18 completed,
+  8.6510sec, peak98,332,672/private311,144,448 bytes. Reuses saved fits/scores; no
+  retraining or new market outcomes. The final manifests match current source.
+These are measured own-process Windows counters, not total machine memory.
+
+Executed bounded findings:12 IID-increment null pipelines and12 controlled AR(.5)
+pipelines repeat causal features, label purge, inner count/identity/scaling/fit and
+outer fit, followed by fixed sign decisions in Stage12. Positive loss-effect signs
+3/12 null versus12/12 AR, not significance/false-discovery rates. Maximum binomial
+SE .144; finite null false positives allowed. Dependent AR(.8) block mean SD
+.03492 singleton versus .06171/.08248/.09068 for4/12/24. Singleton is a fixture
+sensitivity only. Synthetic execution8 deterministic adverse cases +16 MC paths;
+all cash/cost/fill records retained. MC PnL q5/50/95=-12.206/-2.826/+15.500
+account units, hypothetical assumptions on a synthetic path, not broker measurement
+or future forecast. Median loss preserved. Ridge .5/1/2 penalty, momentum ablation
+and threshold neighbor retained whole; no selected profitable replacement.
+
+Econometric controls: synthetic Kalman parameters fitted on prior300 observations,
+q multipliers .5/1/2, positive Joseph covariances. Delayed intervals64/128 x
+gamma0/.01,30sec publication delay and fixed doubled scale after400. Coverage
+78.26/77.21% rolling versus80.34/80.21% adaptive, with wider adaptive intervals.
+CUSUM threshold6 any null alarm3/12; thresholds8/10 zero/12, not a zero-rate proof;
++3sigma detection2-5 observations. Whole neighborhoods retained; no health action.
+
+Saved forecast audit checked2,696 scores across48 fitted specifications. Recomputed
+June1 effects match Stage13.5: ARX/zero relative MSE -1.3198%/-4.1167%; Kalman/zero
+-0.7563%/-2.1588%; GARCH/rolling QLIKE +.02046/+.29499, but only1/3 and2/3 positive
+folds. Negative5m HAR differences preserved. All48 block configurations insufficient
+(one day;15m77 rows). No market CI, p-value or selection-aware significance claim.
+Holm unavailable for full16 predictive hypotheses; economic inference unavailable.
+Coefficient/state/coverage/width records retained by hashes; no market perturbation
+refits claimed. Concentration is retrospective closed-trade/month attribution;
+single-day/hour evidence cannot support long-term decay or regime economics.
+
+Verdicts: ARX/Kalman/GARCH/HAR at both timeframes BLOCKED for promotion by missing
+matching prior-only null/evidence identities; conditional evidence INCONCLUSIVE.
+Ridge/historical mean BLOCKED by matching evidence and verified supplied execution
+terms. Legacy ML/ensembles additionally BLOCKED by global adaptive chronology.
+No Stage15 candidate. Search exposure partially recorded, effective trials and
+whole historical discovery uncertainty unknown. No new uninspected period proved.
+Do not enlarge the search until something passes; any expanded study needs a new
+frozen plan, adequate coverage and required scientific prerequisites.
+
+Verification commands/outcomes:
+- `.venv\Scripts\python.exe -m pytest tests/test_robustness_statistics.py
+  tests/test_robustness_framework.py tests/test_robustness_execution.py
+  tests/test_econometric_models.py tests/test_econometric_state.py
+  tests/test_econometric_uncertainty.py tests/test_econometric_framework.py
+  tests/test_econometric_source.py tests/test_strategy_chronology.py
+  tests/test_strategy_execution.py tests/test_strategy_framework.py
+  tests/test_strategy_source.py tests/test_execution_engine.py
+  tests/test_execution_readiness.py tests/test_execution_io.py
+  tests/test_stage12_audit_repairs.py tests/test_final_test_isolation.py
+  tests/test_prediction_contract.py -q -p no:cacheprovider`:221 passed/48.12sec.
+- Final Stage14-only set adds `tests/test_robustness_econometric_controls.py`
+  and `tests/test_robustness_source_identity.py` to the three robustness test files:
+ 18 passed/2.15sec. Total225 distinct targeted tests over these two commands;
+  no full suite. Earlier17-only verification passed/2.01sec.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:clean.
+  `.venv\Scripts\python.exe -m mypy src`:clean,229 source files.
+  `git diff --check`:clean.
+- `.venv\Scripts\python.exe scripts/check_robustness_guards.py --output
+  results/robustness/GUARD_MUTATIONS_V001.json`:preserved obstructed audit.
+  Pytest child processes could not access their Windows temporary directory;
+  setup errors were correctly not counted as detected guard failures.
+  Approved outside-sandbox rerun V002 detected all41 guards, source unchanged.
+  Final V003 detected all42 guards, including saved source identity; original
+  source hashes unchanged. Disabled guards were restored in the isolated copy.
+  A later sandbox test invocation likewise had11 pass/6 setup errors; approved
+  rerun passed all17, and final18 passed. No permission errors treated as passes.
+- `.venv\Scripts\python.exe scripts/verify_robustness.py --run-id
+  ROBUST_SMOKE_V003 --run-id ROBUST_HISTORICAL_V002 --output
+  results/robustness/FINAL_VERIFICATION_V001.json`:passed. Checked22,606 order events,
+  11,302 fills,5,646 closed trades for strict arrival/expiry, cost decomposition,
+  cash reconciliation,192+18 terminal attempts, immutable plan/source identities,
+  current source fingerprints and unchanged reserved access logs. Saved records only.
+- `.venv\Scripts\python.exe scripts/summarize_robustness.py --run-id
+  ROBUST_SMOKE_V002`, and ROBUST_HISTORICAL_V001:read-only summaries verified above.
+
+Changed files (28 source/config/documentation/test files; UTF-8 without BOM):
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md.
+- docs/stage12_execution.md, docs/stage13_strategy_validation.md,
+  docs/stage13_5_econometrics.md, docs/stage14_robustness.md.
+- config/robustness.yaml; src/xauusd_quant/cli.py.
+- src/xauusd_quant/robustness/__init__.py, plan.py, inventory.py, statistics.py,
+  resampling.py, reports.py, stress.py, studies.py, econometric_controls.py, runs.py.
+- tests/test_robustness_statistics.py, tests/test_robustness_framework.py,
+  tests/test_robustness_execution.py, tests/test_robustness_econometric_controls.py,
+  tests/test_robustness_source_identity.py.
+- scripts/check_robustness_guards.py, scripts/summarize_robustness.py,
+  scripts/verify_robustness.py.
+Local ignored results/robustness holds plans, inventories, immutable versioned
+studies, detailed engine streams, failed audit, mutation/verification reports.
+No results or data deleted or overwritten. Stop after Stage14.
+
+## 2026-10-04 - Stage #14 commit and push authorization
+
+The user separately requested `commit and push` after Stage #14 completion.
+This authorizes the Git commit and push of the 28 Stage #14 source, configuration,
+test and documentation files. Earlier no-commit/no-push instructions describe
+the research implementation request; broker, deployment and Stage #15 restrictions
+remain. Pre-commit inspection confirms `main`, the expected GitHub origin, no
+unrelated working-tree changes, and a clean `git diff --check`. Data and local
+research artifacts remain ignored. Prior targeted tests, guard mutations, lint
+and typing results above remain the validation evidence for this unchanged code.

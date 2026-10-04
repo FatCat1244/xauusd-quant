@@ -1,0 +1,17 @@
+plan_id: ROBUSTNESS_V002
+source_runs: [ECON_5M_DIAGNOSTIC_V001, ECON_15M_DIAGNOSTIC_V001]
+block_lengths: [4, 12, 24]
+bootstrap_replicates: 199
+monte_carlo_paths: 16
+discovery_replicates: 12
+seed: 140014
+minimum_days: 5
+minimum_rows: 200
+minimum_blocks: 8
+trial_budget: 256
+maximum_records: 25000
+wall_budget_seconds: 240.0
+private_memory_budget_bytes: 1073741824
+classification: retrospective_previously_inspected
+revision_reason: 'V002 adds fixed econometric synthetic sensitivity checks to complete Stage14 infrastructure after V001 smoke/effects; same market candidates, periods and acceptance criteria; no expanded market search.'
+econometric_controls: true

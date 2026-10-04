@@ -1,5 +1,8 @@
 # Stage #13.5: bounded econometrics, causal adaptation and uncertainty
 
+This is the preserved Stage #13.5 record. Prompt #14 supersedes its earlier
+stopping rule only for [bounded offline robustness](stage14_robustness.md).
+
 Prompt #13.5 authorizes offline implementation/research only. Stop before Stage
 #14. No broker, demo/live orders, deployment, commit or push. Forecast contracts
 and earlier results remain unchanged. Nothing here establishes profitability.

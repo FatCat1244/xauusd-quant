@@ -1,5 +1,8 @@
 # Stage #12: offline execution and trading economics
 
+This is the preserved Stage #12 record. Later prompts authorize the offline
+Stage #13/#13.5 and [Stage #14](stage14_robustness.md) extensions only.
+
 Prompt #12 explicitly authorized this offline layer on 2026-10-03. No broker,
 MT5, demo/live trading or deployment is implemented or authorized. Stop before
 Stage #13. Nothing selects features, models or policies by trading performance.

@@ -6,7 +6,13 @@ This repository is a research codebase for XAUUSD (gold) tick data. Read
 the short version for an agent asked to draft or review a piece of it. Where
 the two differ, `CLAUDE.md` wins.
 
-## Scope - research forecasts and authorized offline Stages #12-#13.5
+## Scope - research forecasts and authorized offline Stages #12-#14
+
+Prompt #14 (2026-10-04) authorizes bounded offline robustness: immutable plans,
+selection inventories, assumption-aware statistics, dependence-aware uncertainty,
+synthetic discovery controls and Stage #12 execution stress. It supersedes the
+earlier stop-before-#14 rules only for this work. Stop before Stage #15. No broker,
+demo/live orders, deployment, commits or pushes. See `docs/stage14_robustness.md`.
 
 - Allowed outputs: descriptive statistics, research tables, probabilities,
   expected values, calibrations, uncertainty proxies.
@@ -17,13 +23,14 @@ the two differ, `CLAUDE.md` wins.
 - Broker/MT5 connectivity, demo/live trading, deployment and neural networks
   remain prohibited. Prompt #13 authorizes offline nested strategy validation,
   small prespecified policy families, historical diagnostics and robustness.
-  Stop before Stage #14. Historical 2022+ outcomes have already been inspected;
+  The historical Stage #13 stopping rule is superseded by Prompt #14 above.
+  Historical 2022+ outcomes have already been inspected;
   Stage #12/#13 execution and validation commands refuse reserved access.
 
 Prompt #13.5 (2026-10-04) adds bounded offline econometric benchmarks, causal
 state estimation, delayed outcome intervals and health diagnostics. Fixed
-model hypotheses can fail. This does not authorize Stage #14, broker access,
-demo/live orders, deployment, commits or pushes. See
+model hypotheses can fail. Prompt #14 adds offline robustness only; broker access,
+demo/live orders, deployment, commits and pushes remain prohibited. See
 `docs/stage13_5_econometrics.md`.
 
 ## Invariants you must not break

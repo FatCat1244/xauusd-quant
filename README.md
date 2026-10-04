@@ -2,7 +2,7 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Thirteen layers plus a bounded econometric extension: nine descriptive,
+Fourteen layers plus a bounded econometric extension: nine descriptive,
 two predictive, offline execution and offline chronological strategy validation.
 Forecast contracts remain prediction-only:
 
@@ -54,12 +54,17 @@ Forecast contracts remain prediction-only:
 13. **Purged strategy validation** - registered small experiment families,
     fold-local feature/model selection, continuous tick execution, fixed
     benchmarks, robustness and evidence verdicts. Retrospective reconstruction
-    is distinguished from prospective evidence; stop before Stage #14.
+    is distinguished from prospective evidence.
+
+14. **Bounded robustness** - selection inventory, strict statistical assumptions,
+    complete-family corrections, block uncertainty, synthetic discovery controls,
+    engine execution stress and econometric sensitivity. See
+    [Stage #14](docs/stage14_robustness.md). Stop before Stage #15.
 
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
-> **Prompts #12-#13.5 authorize offline research, backtesting and validation only.** The separate execution
+> **Prompts #12-#14 authorize offline research, backtesting and validation only.** The separate execution
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
 > remain probabilities and expected values; broker connectivity, demo/live trading
@@ -149,7 +154,7 @@ Raw XAUUSD tick CSV (34 GB, read-only)
 
 Stage #12 applies declared execution costs in an offline simulator. Current
 scientific evidence and unknown broker terms prevent a tradable-edge conclusion.
-No broker connectivity or demo/live trading is implemented. Stop before #14.
+No broker connectivity or demo/live trading is implemented. Stop before #15.
 
 ## Installation
 
@@ -2598,7 +2603,8 @@ xq econometric-smoke --plan config/econometrics.yaml --run-id ECON_SMOKE_5M_V001
 xq econometric-evaluate --plan config/econometrics.yaml --run-id ECON_5M_DIAGNOSTIC_V001
 ```
 
-Stop before Stage #14. No broker, demo/live trading or deployment.
+This preserved Stage #13.5 record is extended by Stage #14 offline robustness.
+Stop before Stage #15. No broker, demo/live trading or deployment.
 
 ## Non-goals
 
