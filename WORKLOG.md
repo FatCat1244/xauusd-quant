@@ -24,7 +24,7 @@ pitfalls, measured dataset facts). This file is the *history*.
 | Tests | 1,259 passed, 0 failed (three processes 22:48-23:07, one real-data test rerun alone after a DuckDB allocation failure, 2026-10-01); ruff and mypy clean |
 | Research ledger | ~389,480 rows (+565 ENS-H for Prompt #11) |
 | Git | branch `main`, pushed to the private GitHub repo `FatCat1244/xauusd-quant` (first commit 2026-10-02); code, config, tests, notebooks and docs only - data, results, logs and `.venv` stay local |
-| Current extension | Stage #15 offline alpha registry/shared account; NO_ELIGIBLE_ALPHAS; 237 targeted tests passed, 54 guards detected; recorded search exposure partial, older searches unknown; stop before #16 |
+| Current extension | Stage #16 offline authoritative risk software; 270 targeted tests passed, 19 guards detected; actual UNCONFIGURED/BLOCKED/NO_ELIGIBLE_ALPHAS; synthetic validation only; historical selection uncertainty retained; stop before #17 |
 
 **Open decisions (yours):** 1m spectral, wavelet and regime studies; the
 all-window post-hoc wavelet run; regenerating the Prompt #2/#3 results on the
@@ -1441,7 +1441,15 @@ Stage #15: no evidence-supported alpha portfolio. Matching prior-only pipeline
 nulls, economic/execution evidence, complete policy clocks, adequate coverage and
 fold-local eligibility remain prerequisites. Corrected Stage #13 fits are present;
 unknown legacy selection chronology and previously inspected periods remain.
-Stage #16 and broker/shadow/demo work require separate authorization.
+Stage #16 offline risk software is authorized; actual settings and scientific
+eligibility remain missing. Broker/shadow/demo work requires separate authorization.
+
+Stage #16: supply explicit account denomination/currency/conversion, instrument
+contract/tick/quantity/margin/cost/financing terms and the complete risk policy
+listed by `risk-readiness`. Synthetic values are not production recommendations.
+Async transport, live reconciliation, persistence/operator procedures, broker
+margin and feed/shadow validation remain later-stage requirements. No live safety
+or profitability follows from passing offline tests.
 
 Stage #14: no candidate currently eligible for Stage #15. Required matching
 prior-only random-walk/sign-flip evidence, audited provenance and verified supplied
@@ -2328,3 +2336,129 @@ Pre-commit inspection confirms `main`, the expected GitHub origin, no unrelated
 changes and a clean `git diff --check`. Data and local research artifacts remain
 ignored. The preceding targeted tests, guard audits, lint, typing and independent
 record verification remain the validation evidence for the unchanged code.
+
+## 2026-10-04 - Stage #16 authoritative offline risk engine
+
+Prompt #16 authorizes offline implementation and bounded replay only. No broker,
+credentials, MT5 session, demo/live orders, deployment, commit, push or Stage17.
+Tree was clean on main at 967fdf3 before edits; no unrelated changes were present.
+Read scope/working notes, predecessor documentation, portfolio/intent/allocation
+contracts, shared target/order lifecycle, accounting, health and chronology guards,
+actual Stage13 V002/13.5/14 result metadata and Stage15 registry/verdict/verification.
+Actual registry ALPHA_REGISTRY_V003 has66 entries and zero eligibility. Stage13
+V002 fits exist; earlier short negative economics and Stage13.5 forecasts do not
+pass missing scientific gates. Stage14 names no Stage15 candidate. These saved
+results were inspected, not reproduced. Previously inspected 2022+ stays reserved;
+the four access-log hashes are unchanged. No market outcome/value loader invoked.
+
+Implemented typed account/instrument/snapshot/health/intent/ack contracts, strict
+versioned risk settings, conditional horizon-stress and explicit stop-distance
+sizing, conservative gross/net/sleeve/cash/margin/rate budgets, idempotent pending
+reservations, health/version/time/session gates, daily adjusted-equity loss and
+persistent HWM/drawdown, explicit halts/reconciliation/rearming, checkpoints and
+audit summaries. Actual config/risk.yaml leaves policy/account/instrument null:
+UNCONFIGURED/BLOCKED/NO_ELIGIBLE_ALPHAS. All synthetic values are labeled; no live
+values inferred from Stage12 defaults or a cent account inferred from its balance.
+
+RiskPortfolio reuses Stage15 netting/attribution and Stage12 fills/cash/costs;
+no competing accountant. Its target capability, submission reservation and actual
+fill checks are mandatory. Raw strategy calls cannot submit, enlarge a permit or
+restore a governed account without the boundary. Verified reductions close fully,
+never cross zero; replacement is a separate later approval. Simulator cancellation
+is explicitly synchronous confirmed execution, followed by account reconciliation
+and at most one immediate replacement attempt. Unknown/unconfirmed orders retain
+reservations; partial reports halt until terminal residual-position reconciliation.
+The simulator still has one position/order and full fills; no broker partial fills.
+Margin reserves entry commission and immediate spread/slippage liquidation-mark
+loss as well as conservative Ask-side notional. Costs and financing remain in
+the authoritative equity record. A gap can exceed every configured loss threshold.
+
+RISK_REPLAY_PLAN_V001 frozen before new synthetic outcomes:7 hand-constructed
+scenarios, baseline plus risk,14 operations, at most16 events each,120sec/1GiB,
+sequential. Acceptance is software invariants and retained unresolved exposures;
+no PnL-based parameter changes/search or real-candidate promotion. Configuration
+identities are globally immutable as well as saved per run. State/schema/unit
+contracts, audit JSONL, persistent checkpoints and copied human specification
+are versioned artifacts. Restarts require reconciliation and retained severe
+halts require explicit operator/reason; neither HWM nor loss is silently reset.
+
+Actual commands/studies, using `.venv\Scripts\python.exe -m xauusd_quant.cli`:
+- `risk-plan`: froze results/risk/plans/RISK_REPLAY_PLAN_V001.json.
+- `risk-replay --risk-config config/risk_synthetic.yaml --run-id RISK_SMOKE_V001`:
+  failed first baseline because the trial directory was not created; failed ledger
+  and manifest retained. No completed result claimed. Fixed directory creation.
+- Same replay with RISK_SMOKE_V002:14 completed,.803554sec,304599040 private bytes.
+  V003:14,.828047sec,304762880. Final V004:14,.778314sec,303198208 private bytes,
+  peak working set88936448. Measured own process, not whole-machine memory.
+- `risk-readiness --run-id RISK_READINESS_V001`:UNCONFIGURED/BLOCKED, exit1,
+  .337509sec,302145536 private bytes. V002:.312300sec,302272512. Final V003:
+  .314472sec,302190592; precise missing field lists saved; no real-data replay.
+
+Synthetic findings retained: agreement earns ~3.4 ledger units in both variants;
+opposition/pending-net cancellation inactive. Adverse-jump baseline loses ~16.6;
+risk refuses fill outside reservation. Loss-halt gap: risk realizes ~-200.6,
+exceeding synthetic40 drawdown threshold; its exit costs slightly worsen marked
+economics compared with holding. Invalid next feed leaves the account exposed
+with unresolved flattening. Invalid health blocks even the profitable fixture
+trade. None establishes improved unbiased performance, market edge or loss ceiling.
+
+Actual validation/failures:
+- Initial two test modules failed collection due test-relative imports; fixed
+  to the repository's absolute fixture convention. Then43 core tests passed.
+- Initial portfolio tests7 passed/2 failed: pending target cancellation needed
+  confirmed reconciliation then bounded replacement before a later quote. Fixed,
+  nine passed; additions cover stronger independent boundary checks.
+- Framework first2 passed/2 failed from an incorrect load_config keyword. Fixed
+  with the existing dataclass replacement convention; subsequent full framework
+  tests pass. Scratch versions retained under ignored results/risk.
+- Mutation GUARD_MUTATIONS_V001:13/15 detected, source unchanged. Two checks were
+  masked by secondary protection. Added independent submission checks; repaired
+  checkpoint dictionary aliasing that could mutate its frozen input. V002:15/15;
+  V003:18/18; final V004:19/19, all original source bytes unchanged. Sources are
+  disabled only in isolated copies and restored; not a claim based on unbroken tests.
+- Final targeted command (no full suite):
+  `.venv\Scripts\python.exe -m pytest tests/test_risk_decisions.py
+  tests/test_risk_state.py tests/test_risk_portfolio.py tests/test_risk_framework.py
+  tests/test_alpha_portfolio_account.py tests/test_alpha_portfolio_causality.py
+  tests/test_alpha_portfolio_framework.py tests/test_execution_engine.py
+  tests/test_execution_io.py tests/test_execution_readiness.py
+  tests/test_stage12_audit_repairs.py tests/test_final_test_isolation.py
+  tests/test_prediction_contract.py tests/test_strategy_execution.py
+  tests/test_strategy_chronology.py -q -p no:cacheprovider
+  --basetemp results/risk/test_scratch_V007`:270 passed/11.91sec.
+  Previous targeted268/269 and risk-only passes are overlapping checks, not added totals.
+- `.venv\Scripts\python.exe scripts/check_risk_guards.py --output
+  results/risk/GUARD_MUTATIONS_V004.json`:19/19 detected; unchanged originals.
+- `.venv\Scripts\python.exe scripts/verify_risk.py --replay RISK_SMOKE_V004
+  --readiness RISK_READINESS_V003 --output results/risk/FINAL_VERIFICATION_V002.json`:
+  passed.13 fills,34 cash flows,five closed trades,92 risk decisions; quantities,
+  executable quote sides, strict timing, cash/fee/PnL/sleeve reconciliation,
+  immutable JSON/source identities and unchanged reserved logs. V001 verification
+  on prior source-bound V003/V002 also passed and remains on disk.
+- `.venv\Scripts\ruff.exe check src tests scripts`:clean.
+  `.venv\Scripts\mypy.exe src`:clean,243 source files. `git diff --check`:clean.
+
+Changed23 source/config/test/doc files:
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md.
+- config/risk.yaml, config/risk_synthetic.yaml, docs/stage16_risk_engine.md.
+- src/xauusd_quant/cli.py, execution/engine.py, alpha_portfolio/portfolio.py.
+- src/xauusd_quant/risk/__init__.py, contracts.py, policy.py, engine.py,
+  portfolio.py, runs.py.
+- tests/risk_synth.py, test_risk_decisions.py, test_risk_state.py,
+  test_risk_portfolio.py, test_risk_framework.py.
+- scripts/check_risk_guards.py, scripts/verify_risk.py.
+Ignored results/risk retains all versions, failures, streamed accounting/audits,
+plans/configuration schemas, state machines/checkpoints, readiness/comparisons,
+human specification snapshots and verification. No historical artifact deleted
+or overwritten. No heavy study, full test suite, actual broker/reconciliation
+claim, real-data portfolio replay, deployment, commit or push. Stop after Stage16.
+
+## 2026-10-04 - Stage #16 commit and push authorization
+
+The user separately requested `commit and push` after Stage #16 completion.
+This authorizes committing and pushing the 23 reviewed Stage #16 source,
+configuration, test and documentation files. Broker, deployment and Stage #17
+restrictions remain. Pre-commit inspection confirms main, the expected GitHub
+origin, no unrelated changes and a clean `git diff --check`. Data and research
+artifacts remain ignored. The preceding 270 targeted tests, 19 guard mutations,
+lint, typing and saved-record verification validate the unchanged code.

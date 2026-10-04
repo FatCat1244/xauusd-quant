@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any
 
 from ..execution.config import ExecutionConfig, content_hash
-from ..execution.engine import ExecutionEngine, Quote, Recorder
+from ..execution.engine import ExecutionEngine, Quote, Recorder, RiskBoundary
 from ..execution.io import parse_utc
 from ..execution.policy import utc_time
 from .allocation import Allocation
@@ -231,9 +231,16 @@ class Portfolio:
                     "pending_order": self.engine.pending.order_id if self.engine.pending else None,
                 },
             )
-        self.engine.request_target(
+        self._route_target(
             at, lots, self.allocation.allocation_id if self.allocation else "INACTIVE_V001"
         )
+
+    def _route_target(self, at: datetime, lots: float, identity: str) -> None:
+        """Historical research routing; Stage16 overrides with mandatory risk approval."""
+        self.engine.request_target(at, lots, identity)
+
+    def _consume_quote(self, event: Quote) -> None:
+        self.engine.consume([event])
 
     def _expire_until(self, at: datetime) -> None:
         # Run timers at their exact expiry even when no quote arrives.
@@ -273,9 +280,9 @@ class Portfolio:
                 self._combine(at, "intent")
             else:
                 self._combine(at, "quote")
-                self.engine.consume([event])
+                self._consume_quote(event)
                 # After close: submit replacement, which cannot use this same quote.
-                self.engine.request_target(
+                self._route_target(
                     at,
                     self.target_lots,
                     self.allocation.allocation_id if self.allocation else "INACTIVE_V001",
@@ -352,6 +359,7 @@ class Portfolio:
         record: Recorder,
         state: dict[str, Any],
         contracts: dict[str, tuple[str, int]] | None = None,
+        *, risk_authority: object | None = None, risk_boundary: RiskBoundary | None = None,
     ) -> Portfolio:
         portfolio = cls(config, specifications, budget_lots, record, contracts)
         if (
@@ -360,7 +368,8 @@ class Portfolio:
         ):
             raise ValueError("portfolio state configuration mismatch")
         portfolio.engine = ExecutionEngine.restore_target_state(
-            config, state["engine"], portfolio._record
+            config, state["engine"], portfolio._record,
+            risk_authority=risk_authority, risk_boundary=risk_boundary,
         )
         for alpha, body in state["intents"].items():
             portfolio.intents[alpha] = Intent(

@@ -65,12 +65,17 @@ Forecast contracts remain prediction-only:
 15. **Offline alpha portfolio** - versioned evidence registry, causal exposure
     intents, prior-only allocations, shared execution and reconciled attribution.
     No eligible alpha or selected trading strategy. See
-    [Stage #15](docs/stage15_alpha_portfolio.md). Stop before Stage #16.
+    [Stage #15](docs/stage15_alpha_portfolio.md).
+
+16. **Offline production-oriented risk engine** - authoritative sizing and unit
+    contracts, health/loss limits, conservative order reservations, persistent
+    halts and bounded replay. Actual operation remains unconfigured and inactive.
+    See [Stage #16](docs/stage16_risk_engine.md). Stop before Stage #17.
 
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
-> **Prompts #12-#14 authorize offline research, backtesting and validation only.** The separate execution
+> **Prompts #12-#16 authorize offline research, backtesting, validation and risk software only.** The separate execution
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
 > remain probabilities and expected values; broker connectivity, demo/live trading
@@ -2619,7 +2624,8 @@ The list below records the historical Stages #1-#11 scope. Stage #12 now
 implements offline entries/exits, fixed quantity, PnL, tick execution,
 declared costs and backtesting as documented above. Stage #15 adds bounded
 offline policy combination and shared-account research, with zero eligible alphas.
-Production portfolio/risk management is excluded. The other exclusions
+Stage #16 adds offline risk software and synthetic validation, with actual
+operation unconfigured/inactive. Production operation remains excluded. Other exclusions
 (especially broker/live access and performance-based model selection) remain.
 
 Historically **not** implemented before Stage #12, and not to be added here
@@ -2848,4 +2854,15 @@ Stage #12 execution account. The actual Stage #14 evidence yields
 timing, netting, attribution, prior-only allocations and declared cost comparisons.
 See [Stage #15 evidence and commands](docs/stage15_alpha_portfolio.md) and the
 [architecture specification](docs/stage15_strategy_specification.md).
-Offline only; no broker, demo/live orders, deployment, commits, pushes or Stage #16.
+This preserved Stage #15 record is extended by Stage #16 offline risk software.
+No broker, demo/live orders, deployment, commits, pushes or automatic later stage.
+
+## Stage #16 offline risk engine
+
+Risk decisions now govern Stage #15 targets before Stage #12 can submit or fill.
+Explicit currency/denomination and instrument contracts, scenario sizing,
+pending-order reservations, persistent loss/drawdown halts, health gates,
+reconciliation and explicit rearming are validated with synthetic fixtures.
+Actual settings remain **UNCONFIGURED** and the universe **NO_ELIGIBLE_ALPHAS**;
+no real-data portfolio replay or evidence-supported strategy operation.
+See [risk specification and commands](docs/stage16_risk_engine.md).

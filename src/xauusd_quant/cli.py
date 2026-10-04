@@ -746,6 +746,12 @@ def build_parser() -> argparse.ArgumentParser:
         if command in ("portfolio-smoke", "portfolio-evaluate"):
             p_portfolio.add_argument("--run-id", required=True)
 
+    for command in ("risk-plan", "risk-readiness", "risk-replay"):
+        p_risk = sub.add_parser(command, help="Stage16 offline authoritative risk validation")
+        p_risk.add_argument("--risk-config", type=Path, default=None)
+        if command != "risk-plan":
+            p_risk.add_argument("--run-id", required=True)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3593,6 +3599,12 @@ def cmd_portfolio(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_risk(config: Config, args: argparse.Namespace) -> int:
+    from .risk.runs import cli_command
+
+    return cli_command(config, args)
+
+
 def cmd_econometrics(config: Config, args: argparse.Namespace) -> int:
     """Lazy Stage 13.5 entry; offline diagnostics, unchanged prediction contracts."""
     from .econometrics.runs import cli_command
@@ -3648,6 +3660,9 @@ COMMANDS = {
     "alpha-registry": cmd_portfolio,
     "portfolio-smoke": cmd_portfolio,
     "portfolio-evaluate": cmd_portfolio,
+    "risk-plan": cmd_risk,
+    "risk-readiness": cmd_risk,
+    "risk-replay": cmd_risk,
     "econometric-plan": cmd_econometrics,
     "econometric-readiness": cmd_econometrics,
     "econometric-smoke": cmd_econometrics,

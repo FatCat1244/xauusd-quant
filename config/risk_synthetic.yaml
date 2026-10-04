@@ -1,0 +1,71 @@
+# Hand-checkable offline fixture ONLY; not broker metadata or recommended limits.
+configuration_id: RISK_SYNTHETIC_V001
+account:
+  specification_id: SYNTHETIC_ACCOUNT_V001
+  currency: USD
+  denomination: major
+  ledger_units_per_major: 1
+  major_currency_per_usd: 1
+  provenance: explicit synthetic USD fixture, not Exness terms
+  status: synthetic
+instrument:
+  specification_id: SYNTHETIC_INSTRUMENT_V001
+  symbol: XAUUSD
+  price_units: USD_per_troy_ounce
+  quantity_units: lots
+  ounces_per_lot: 100
+  lot_step: 0.01
+  min_lots: 0.01
+  max_lots: 1
+  tick_size: 0.01
+  price_decimals: 2
+  margin_notional_fraction: 0.05
+  commission_ledger_per_lot_leg: 3
+  slippage_usd_per_ounce_leg: 0.02
+  financing_long_ledger_per_lot_day: 2
+  financing_short_ledger_per_lot_day: 2
+  provenance: explicit synthetic linear CFD fixture, not Exness terms
+  status: synthetic
+policy:
+  policy_id: RISK_POLICY_SYNTHETIC_V001
+  status: synthetic
+  account_loss_budget: 100
+  position_loss_budget: 60
+  alpha_loss_budget: 40
+  max_net_lots: 0.03
+  max_gross_intended_lots: 0.04
+  max_positions: 1
+  max_pending_orders: 1
+  max_orders_per_window: 20
+  order_window_seconds: 60
+  max_turnover_lots_per_window: 0.20
+  turnover_window_seconds: 60
+  daily_loss_limit: 25
+  drawdown_limit: 40
+  daily_timezone: UTC
+  max_spread_usd_per_ounce: 0.50
+  max_quote_age_seconds: 5
+  max_account_age_seconds: 5
+  max_health_age_seconds: 5
+  max_forecast_abs_log_return: 0.10
+  max_volatility: 0.10
+  max_uncertainty: 0.10
+  require_diagnostic: true
+  minimum_free_margin: 50
+  sizing_method: horizon_stress
+  horizon_stress_fraction: 0.01
+  adverse_exit_usd_per_ounce: 0.10
+  max_holding_seconds: 900
+  session_timezone: UTC
+  session_start_hour: 0
+  session_end_hour: 24
+  session_weekdays: [0, 1, 2, 3, 4]
+  allow_overnight: false
+  limit_response: flatten
+  emergency_allow_wide_spread: true
+  warmup_snapshots: 1
+  expected_portfolio_id: SYNTHETIC_PORTFOLIO_V001
+  allowed_allocation_ids: [EQUAL_V001]
+  alpha_contracts:
+    A: {policy: A_V001, model: MODEL_A_V001, features: FEATURES_A_V001}
+    B: {policy: B_V001, model: MODEL_B_V001, features: FEATURES_B_V001}

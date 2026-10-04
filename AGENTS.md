@@ -6,7 +6,13 @@ This repository is a research codebase for XAUUSD (gold) tick data. Read
 the short version for an agent asked to draft or review a piece of it. Where
 the two differ, `CLAUDE.md` wins.
 
-## Scope - research forecasts and authorized offline Stages #12-#15
+## Scope - research forecasts and authorized offline Stages #12-#16
+
+Prompt #16 (2026-10-04) authorizes an authoritative risk boundary, explicit unit
+and sizing contracts, persistent fail-safe state, and bounded synthetic offline
+replay. Stage #15 has no eligible alphas; actual operation remains inactive.
+No broker, demo/live orders, deployment, commits, pushes or automatic Stage #17.
+See `docs/stage16_risk_engine.md`. Earlier stopping rules are historical.
 
 Prompt #15 (2026-10-04) authorizes bounded offline alpha registries, causal policy
 combination and one shared Stage #12 account. Missing eligibility keeps the

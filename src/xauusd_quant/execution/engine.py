@@ -42,6 +42,9 @@ class BarClose:
     bar_index: int
 
 
+RiskBoundary = Callable[[str, datetime, float, str, Quote | None], bool]
+
+
 @dataclass
 class Order:
     order_id: int
@@ -86,9 +89,13 @@ class MemoryRecorder:
 
 class ExecutionEngine:
     def __init__(
-        self, config: ExecutionConfig, forecasts: Iterable[Forecast], record: Recorder
+        self, config: ExecutionConfig, forecasts: Iterable[Forecast], record: Recorder,
+        *, risk_authority: object | None = None, risk_boundary: RiskBoundary | None = None,
     ) -> None:
         self.config = config
+        if (risk_authority is None) != (risk_boundary is None):
+            raise ValueError("risk authority and boundary must be installed together")
+        self._risk_authority, self._risk_boundary = risk_authority, risk_boundary
         self.record = record
         self.forecasts: Iterator[Forecast] = iter(forecasts)
         self.next_forecast = next(self.forecasts, None)
@@ -182,6 +189,10 @@ class ExecutionEngine:
         close_bar_index: int,
         quantity_lots: float | None = None,
     ) -> None:
+        if self._risk_boundary is not None and not self._risk_boundary(
+            "submit", stamp, direction * (quantity_lots or self.config.quantity_lots), purpose, None
+        ):
+            raise PermissionError("order has no matching reserved risk approval")
         self.order_number += 1
         snapshot = (
             self.last_quote.midpoint
@@ -205,7 +216,10 @@ class ExecutionEngine:
         self.counts["submitted"] += 1
         self.record("orders", {**asdict(order), "status": "submitted", "event_utc": stamp})
 
-    def request_target(self, at_utc: datetime, target_lots: float, identity: str) -> None:
+    def request_target(
+        self, at_utc: datetime, target_lots: float, identity: str,
+        *, risk_authority: object | None = None,
+    ) -> None:
         """Reconcile one shared target, using actual state and the same fill machinery.
 
         Zero cancels pending entry and requests liquidation. Resize/reversal closes
@@ -214,6 +228,12 @@ class ExecutionEngine:
         or fee is synthesized here. This API cannot be mixed with forecast entries.
         """
         at = utc_time(at_utc)
+        if self._risk_authority is not None and (
+            risk_authority is not self._risk_authority
+            or self._risk_boundary is None
+            or not self._risk_boundary("target", at, target_lots, identity, None)
+        ):
+            raise PermissionError("governed execution requires exact current risk-approved target")
         c = self.config
         quantity = abs(target_lots)
         if not math.isfinite(target_lots) or not identity:
@@ -301,6 +321,11 @@ class ExecutionEngine:
         assert o is not None
         c = self.config
         quantity = o.quantity_lots if o.quantity_lots is not None else c.quantity_lots
+        if self._risk_boundary is not None and not self._risk_boundary(
+            "fill", q.timestamp_utc, o.direction * quantity, o.purpose, q
+        ):
+            self._terminal_order("rejected", "risk_fill_gate", q.timestamp_utc)
+            return
         mult = quantity * c.contract_ounces_per_lot * c.account_currency_per_usd
         direction = o.direction if o.purpose == "entry" else -o.direction
         side = q.ask if direction == 1 else q.bid
@@ -548,6 +573,7 @@ class ExecutionEngine:
         clocks = ("clock", "first_clock", "last_equity_record")
         return {
             "schema": "TARGET_ACCOUNT_STATE_V001",
+            "risk_boundary_required": self._risk_authority is not None,
             "config_sha256": content_hash(self.config.resolved()),
             "numbers": {name: getattr(self, name) for name in names},
             "clocks": {
@@ -566,13 +592,16 @@ class ExecutionEngine:
 
     @classmethod
     def restore_target_state(
-        cls, config: ExecutionConfig, state: dict[str, Any], record: Recorder
+        cls, config: ExecutionConfig, state: dict[str, Any], record: Recorder,
+        *, risk_authority: object | None = None, risk_boundary: RiskBoundary | None = None,
     ) -> ExecutionEngine:
         if state.get("schema") != "TARGET_ACCOUNT_STATE_V001" or state.get(
             "config_sha256"
         ) != content_hash(config.resolved()):
             raise ValueError("target state schema/configuration mismatch")
-        engine = cls(config, [], record)
+        if state.get("risk_boundary_required", False) and (risk_authority is None or risk_boundary is None):
+            raise ValueError("governed account restoration requires risk boundary")
+        engine = cls(config, [], record, risk_authority=risk_authority, risk_boundary=risk_boundary)
         expected = set(engine.target_state()["numbers"])
         if set(state["numbers"]) != expected:
             raise ValueError("incomplete account state")

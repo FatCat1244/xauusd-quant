@@ -2,6 +2,14 @@
 
 ## Scope discipline
 
+**Stage #16 authorization (2026-10-04):** offline production-oriented risk
+software, explicit account/instrument units, conservative reservations, health
+and loss gates, persisted halts and bounded synthetic replay through Stage #12.
+No eligible Stage #15 portfolio exists; actual settings stay unconfigured and
+actual strategy operation inactive. Earlier stops are superseded only for this
+extension. No broker, orders, deployment, commit/push or automatic Stage #17.
+Offline tests do not establish live safety. See `docs/stage16_risk_engine.md`.
+
 **Stage #15 authorization (2026-10-04):** bounded offline alpha registration,
 causal normalized exposure intents, frozen allocations and shared Stage #12
 execution/accounting. Stage #14's actual empty eligible universe stays inactive;
