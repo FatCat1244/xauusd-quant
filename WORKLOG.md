@@ -2656,3 +2656,173 @@ future-stage Git preference. Next: bounded non-empty capture during updating
 quotes, followed by actual recording replay equality; scientific eligibility,
 feed compatibility and supplied risk/account/cost terms remain separate blockers.
 No broker orders or automatic Stage18. Stop after Stage17.
+
+## 2026-10-05 - Stage #18 demo-only execution infrastructure and blocked native execution
+
+The user explicitly authorized implementation, bounded DEMO orders only after all
+readiness/configuration gates, and commit/push. Main/origin were inspected before
+editing: clean tree, HEAD dc3ed400aa7c32a6137652eb3b51046ff9a6a8dc,
+origin https://github.com/FatCat1244/xauusd-quant.git. The established main workflow
+is retained. No unrelated changes were present or staged. The user's preference
+to commit/push completed stages is retained; it does not authorize merge/deployment,
+real accounts or automatic Stage19. Scope notes supersede historical broker/Git
+restrictions only for the explicitly bounded DEMO stage.
+
+Actual audit: Stage15 ALPHA_REGISTRY_V003 has66 records/zero eligible alphas;
+Stage14 has no survivor. Null, complete fold-local chronology, economic terms,
+adequate coverage and an independently uninspected period remain missing. Actual
+Stage16 risk.yaml is unconfigured. Stage17 native capture had zero accepted ticks
+or bars and empty equality, not full model/pipeline validation. Frozen model/ensemble
+metadata does not supply complete compatible new-feed artifacts or scientific
+eligibility. No historical market study/performance was reproduced; no reserved
+market rows were read. Selection history and previously inspected2022+ limitations
+remain unchanged. Read-only metadata/access-log hashes agree with initial evidence.
+
+Implemented: separate optional native DEMO adapter and fixed-verb bounded worker;
+no shadow import/trading switch, REAL mode or account override. Exact terminal/demo
+enum/account/server/company/currency/mode/permissions are verified at changing
+boundaries, after submission and during recovery. MarketFOK/IOC requests validate
+actual execution mode, flags/enums, lot increments/caps, tick/price and correct
+position-ticket semantics. order_check retcode0 differs from order_send10009;
+acceptance/completion/partial/unknown responses are not fills.
+
+Stage16 RiskEngine remains the authority. A narrowly identified mechanical smoke
+route omits predictive inputs only; all units, budgets, rounding, margin, session,
+loss/drawdown and reservation controls still apply. Standard strategy health checks
+remain unchanged. Risk authorization binds exact request, expiry, permitted quote
+age and economic snapshot through IPC, then independently validates them natively.
+Material entry-state changes abstain. Native margin/profit are checked against the
+supplied reservation/conversion. Synthetic terms cannot arm native execution.
+Actual strategy-native binding is deliberately blocked: independent lifecycle
+infrastructure does not establish the missing portfolio/feed/scientific prerequisites.
+
+An account-level OS single-writer lock and bounded fsynced hash-chain journal persist
+intents/reservations/SUBMISSION_ATTEMPTED before send. Unknown outcomes never cause
+blind resend. Orders/deals/positions/history establish ownership; magic/comments
+alone cannot adopt exposure. Terminal partial quantities, immutable deal records,
+actual charges, external balance flows, current net lots and balance cash reconcile.
+No simulated/requested price becomes a broker fill. Existing Stage12 shadow/accounting
+engine remains unchanged. The durable submission count denotes attempts (including
+crash uncertainty), cumulatively across the account journal; events/intent records
+retain run_id for run-specific attribution. Exactly-once execution is not claimed.
+
+Shutdown stops entries and only permits bounded verified owned closure. Uncertain
+orders are retained; pending cancellation, exchange execution, broker-stop policies,
+multiple hedged positions, account credit and unsupported charge/correction deal
+types are blocked, not guessed. Restart preserves risk history/halts/reservations,
+requires reconciliation, and cannot rearm after a submission. A verified successful
+check-only history can arm only on an explicit subsequent smoke invocation. Recovery
+closing has its own bounded runtime while retaining original history/risk. Interrupts
+around submission persist unresolved exposure and stop the worker. There is no
+automatic rearming/migration or guarantee that a requested close succeeds.
+
+Public templates retain null financial values. Ignored config/local/demo.yaml and
+config/local/risk_demo.yaml were created only after confirming neither existed;
+the former references the existing local terminal identity and a separate mechanical
+smoke namespace, one entry attempt and close-owned/process-exit behavior. Quantity,
+exposure, loss limits, timing and account/instrument/risk terms remain unset. No
+credentials or private identifiers were printed or copied into tracked files.
+The user's request to explain settings is addressed in the Stage18 configuration
+guide. No synthetic budgets were reused as actual settings.
+
+Actual checks (prefix `.venv\Scripts\python.exe`):
+
+- `-m pytest tests/test_demo_lifecycle.py tests/test_demo_guards.py
+  tests/test_demo_native.py tests/test_demo_state.py tests/test_demo_worker.py
+  tests/test_demo_reconciliation.py tests/test_demo_runs.py
+  tests/test_shadow_adapter.py tests/test_shadow_ingestion.py
+  tests/test_shadow_streaming.py tests/test_shadow_models.py
+  tests/test_shadow_pipeline.py tests/test_shadow_runs.py tests/test_shadow_worker.py
+  tests/test_alpha_portfolio_account.py tests/test_alpha_portfolio_causality.py
+  tests/test_alpha_portfolio_framework.py tests/test_risk_decisions.py
+  tests/test_risk_framework.py tests/test_risk_portfolio.py tests/test_risk_state.py
+  tests/test_execution_engine.py tests/test_execution_io.py
+  tests/test_execution_readiness.py tests/test_final_test_isolation.py
+  -q -p no:cacheprovider`:final357 passed in24.80seconds. This is targeted, not the
+  full suite. Ordinary tests use fake vendor/broker adapters, never actual orders.
+- `-m ruff check src tests scripts`:passed. `-m mypy src`:passed260 source files.
+  `git diff --check`:passed before staging; staged review repeats the whitespace check.
+- `scripts/check_demo_guards.py --output results/demo/DEMO_GUARDS_V002.json`:
+  exit0,9/9 independent canaries detected disabled guards in isolated source copies;
+  originals unchanged. Includes final demo enum, capability, order_check semantics,
+  durable send ordering, material state, recovery arming, filling enum mapping,
+  native state binding and reserved access. V001 aborted on a nonexistent final
+  mutation anchor and exposed a masked account-change canary; preserve
+  DEMO_GUARDS_V001_FAILURE.json. The corrected quote-change canary independently
+  exercises revalidation. All guards restored; no broker calls in mutation tests.
+
+Earlier targeted runs exposed same-account-mark terminal reservation release and
+Windows lock-file reading defects (9 failed/74 passed); fixed with risk-sequence
+mark IDs and size-based lock initialization. Two new recovery/durability tests first
+failed (original deadline prevented later cleanup; fixture checkpoint key wrong),
+then60 passed after correction. A precheck-restore fixture initially named the HWM
+field incorrectly; corrected test subsequently passed. The guard failure and all
+versioned failed/successful study records remain intact; no favorable result was
+selected or existing record overwritten.
+
+Actual bounded commands, prefix `-m xauusd_quant.cli` unless script shown:
+
+- `demo-plan --demo-config config/local/demo.yaml --run-id DEMO_PLAN_V001`:
+  immutable plan/readiness saved, exit1 because settings intentionally unconfigured.
+- `demo-readiness --demo-config config/local/demo.yaml --run-id DEMO_READINESS_V001`:
+  exit1/BLOCKED; lists17 missing execution fields and all missing risk/account/
+  instrument schema fields. Existing terminal reference is complete.
+- `scripts/verify_demo.py --run-id DEMO_SYNTHETIC_V001`:exit1 before representative
+  run because the fake case directory was missing. Plan/failure retained. Corrected
+  V002 completed six fixed cases; final V003 reran after final source edits.
+- `scripts/verify_demo.py --run-id DEMO_SYNTHETIC_V003`:exit0; frozen six-case study
+  full/partial/timeout-after-fill/accepted/None-without-fill/reject; representative
+ 1.3157936seconds, whole study7.8791913seconds, peak own working set230731776 and
+  private662831104/peak commit664117248bytes. Sequential, no native worker, below
+  declared120seconds/1GiB budget. Full/partial/late-discovery cases reconcile known
+  fake entry/closure prices and fees; full synthetic cash change3.48 ledger units
+  is hand-checkable arithmetic, not predictive/economic evidence. Accepted/unknown
+  cases remain unresolved with reservations; both failures are retained.
+- `demo-smoke --demo-config config/local/demo.yaml --run-id DEMO_BLOCKED_SMOKE_V001`:
+  exit1/BLOCKED before native construction;zero submissions/fills/closures.
+- `demo-strategy --run-id DEMO_BLOCKED_STRATEGY_V001`:initial exit1/unconfigured.
+  `demo-strategy --demo-config config/local/demo.yaml --run-id
+  DEMO_BLOCKED_STRATEGY_V002`:exit1, explicit NO_ELIGIBLE_ALPHAS, full-live equality,
+  feed-transfer/native-binding and configuration blockers. No arbitrary signals.
+- `demo-precheck --demo-config config/local/demo.yaml --run-id
+  DEMO_BLOCKED_PRECHECK_V001`:exit1/BLOCKED; no actual order_check/order_send.
+- `demo-preflight --terminal-config config/local/shadow.yaml --run-id
+  DEMO_NATIVE_PREFLIGHT_V001` and V002 and V003:exit0/read-only connectivity only,
+  DEMO verified, HEDGING account mode, no current positions/orders. V001/V002 quote
+  snapshots fresh; V003 stale under configured freshness rule. Execution permissions
+  false; V002/V003 isolate terminal_trade_allowed false, Python/account flags true.
+  MT5 Algo Trading/AutoTrading must be enabled manually in the intended dedicated
+  terminal before a later configured execution run; no setting/EA was changed.
+  These snapshots do not establish continuous ingestion or full pipeline equality.
+- `scripts/verify_demo_artifacts.py --output results/demo/FINAL_VERIFICATION_V001.json`:
+  exit0; verifies frozen hashes, final synthetic/native code identity,9 detected
+  mutations, unchanged upstream/reserved-access history, blocked actual execution
+  and preserved synthetic unknowns. No market values read.
+
+Native source identities:V00181721b6744f3e8d83633a13d4aea7586d11f5627a1b43495f9edc69be5c3dd5e;
+V002a102ccfdf8742d91805765dc74c07afc9b35f3c0d004c75a24d1edd196ba8d85;
+finalV003/syntheticV0037b33d23c30f78900d67f31c8cdbc534397e97718f29f6c3bfbf835fb52c8650c.
+Workers stopped before edits/Git operations; no cache-stamped source changed during
+active native/synthetic studies. Broker checks/submissions/fills/closures:all0.
+No project broker position/order or uncertain submission was created. No unrelated
+account activity was managed. Actual demo lifecycle and strategy trading remain
+BLOCKED. Passing offline tests does not establish real-money safety or profitability.
+
+Tracked changed files (explicit Git staging only):
+
+- AGENTS.md, CLAUDE.md, README.md, WORKLOG.md;
+- config/demo.yaml, config/risk_demo.yaml; docs/stage18_demo_execution.md;
+- src/xauusd_quant/cli.py, src/xauusd_quant/risk/engine.py;
+- src/xauusd_quant/demo/__init__.py, config.py, broker.py, worker.py, journal.py,
+  coordinator.py, runs.py;
+- scripts/check_demo_guards.py, scripts/verify_demo.py, scripts/verify_demo_artifacts.py;
+- tests/demo_synth.py, tests/test_demo_lifecycle.py, test_demo_guards.py,
+  test_demo_native.py, test_demo_reconciliation.py, test_demo_runs.py,
+  test_demo_state.py, test_demo_worker.py.
+
+Local ignored additions: the two unconfigured config/local templates, immutable
+results/demo plans/readiness/studies/failures/native snapshots/verification records,
+and synthetic runtime journals within study directories. Data, captures, private
+account snapshots, model binaries, environments and journals are excluded from Git.
+Final delivery records the commit and verified origin/main hash. Stop after Stage18;
+Stage19 validation is separate and no real-money/deployment authorization is implied.

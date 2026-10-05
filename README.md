@@ -2,10 +2,17 @@
 
 A quantitative research platform for **XAUUSD** (spot gold).
 
-Sixteen offline stages plus a bounded econometric extension: nine descriptive,
+Sixteen offline stages plus a bounded econometric extension, followed by read-only
+shadow and separate demo-only execution infrastructure: nine descriptive,
 two predictive, execution, chronological strategy validation, robustness and
 alpha-portfolio infrastructure. No alpha currently qualifies for portfolio research.
 Forecast contracts remain prediction-only:
+
+Stage #18 adds a separate DEMO-only execution coordinator, durable risk reservations,
+broker-history reconciliation and bounded recovery. No strategy qualifies; actual
+orders remain blocked pending supplied demo limits and verified account/instrument
+terms. Stage #17 shadow mode remains read-only. See the
+[demo execution specification and configuration guide](docs/stage18_demo_execution.md).
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
@@ -77,6 +84,11 @@ Forecast contracts remain prediction-only:
     recorded replay and guarded local simulation. No eligible strategy is active.
     See [Stage #17](docs/stage17_shadow.md). Broker orders remain unavailable.
 
+18. **Separate demo-only execution infrastructure** - risk-approved market requests,
+    durable intent lifecycle, single-writer ownership, actual-deal accounting and
+    bounded verified recovery. Strategy trading remains blocked; smoke execution
+    requires supplied limits. See [Stage #18](docs/stage18_demo_execution.md).
+
 The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 729 million rows after cleaning).
 
@@ -84,8 +96,10 @@ The data set is 23 years of OANDA XAUUSD ticks (2003-05 to 2026-09,
 > layer has a fixed reference policy and hypothetical cost scenarios. Scientific
 > and broker-specification gates currently block economic conclusions. Forecasts
 > remain probabilities and expected values. Prompt #17 separately authorizes
-> explicit read-only Exness demo connectivity and local shadow work; broker orders
-> and deployment remain prohibited. See [Stage #17](docs/stage17_shadow.md).
+> explicit read-only Exness demo connectivity and local shadow work. Prompt #18
+> authorizes a distinct bounded DEMO execution mode after readiness checks and
+> supplied limits. Shadow remains read-only; real-money trading and deployment
+> remain prohibited. See [Stage #18](docs/stage18_demo_execution.md).
 
 ---
 
@@ -171,7 +185,10 @@ Raw XAUUSD tick CSV (34 GB, read-only)
 
 Stage #12 applies declared execution costs in an offline simulator. Current
 scientific evidence and unknown broker terms prevent a tradable-edge conclusion.
-No broker connectivity or demo/live trading is implemented. Stop before #15.
+Stage #17 adds read-only demo connectivity and shadow infrastructure; Stage #18
+adds separate demo execution infrastructure. No alpha qualifies, and demo requests
+remain blocked by missing supplied limits/terms. Real-money trading and deployment
+remain prohibited. Stop after Stage #18.
 
 ## Installation
 
@@ -2631,8 +2648,9 @@ implements offline entries/exits, fixed quantity, PnL, tick execution,
 declared costs and backtesting as documented above. Stage #15 adds bounded
 offline policy combination and shared-account research, with zero eligible alphas.
 Stage #16 adds offline risk software and synthetic validation, with actual
-operation unconfigured/inactive. Production operation remains excluded. Other exclusions
-(especially broker/live access and performance-based model selection) remain.
+operation unconfigured/inactive. Stage #17 and #18 later authorize read-only demo
+connectivity and bounded demo execution infrastructure respectively. Production
+operation, real-money orders and performance-based model selection remain excluded.
 
 Historically **not** implemented before Stage #12, and not to be added here
 without a decision to move to the next stage:

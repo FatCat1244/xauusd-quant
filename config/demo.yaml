@@ -1,0 +1,30 @@
+# Public UNCONFIGURED template. Keep private identity in config/local/shadow.yaml.
+# Copy to config/local/demo.yaml and supply your limits; no examples are live values.
+configuration_id: DEMO_UNCONFIGURED_V001
+mode: DEMO
+terminal_config_path: null
+risk_config_path: null
+risk_policy_id: null
+run_type: null
+specification_id: null
+expected_account_mode: null
+expected_account_currency: null
+dedicated_account_confirmed: null
+project_tag: null
+magic: null
+side: null
+quantity_lots: null
+max_quantity_lots: null
+max_net_lots: null
+max_gross_lots: null
+entry_budget: null
+entry_request_budget: null
+cleanup_request_budget: null
+deviation_points: null
+filling_policy: null
+max_duration_seconds: null
+cleanup_seconds: null
+hold_seconds: null
+intent_ttl_seconds: null
+shutdown_policy: null
+protection: null

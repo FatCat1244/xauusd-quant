@@ -764,6 +764,13 @@ def build_parser() -> argparse.ArgumentParser:
         if command == "shadow-compare":
             p_shadow.add_argument("--replayed", type=Path, required=True)
 
+    for command in ("demo-plan", "demo-readiness", "demo-preflight", "demo-precheck",
+                    "demo-smoke", "demo-strategy", "demo-reconcile", "demo-recover-close"):
+        p_demo = sub.add_parser(command, help="Stage18 explicitly configured DEMO-only execution")
+        p_demo.add_argument("--demo-config", type=Path, default=None)
+        p_demo.add_argument("--terminal-config", type=Path, default=None)
+        p_demo.add_argument("--run-id", required=True)
+
     p_feat = sub.add_parser(
         "build-features",
         help="cache versioned rolling-regression features for full-history bars",
@@ -3617,6 +3624,12 @@ def cmd_risk(config: Config, args: argparse.Namespace) -> int:
     return cli_command(config, args)
 
 
+def cmd_demo(config: Config, args: argparse.Namespace) -> int:
+    from .demo.runs import cli_command
+
+    return cli_command(config, args)
+
+
 def cmd_shadow(config: Config, args: argparse.Namespace) -> int:
     from .shadow.runs import cli_command
 
@@ -3687,6 +3700,14 @@ COMMANDS = {
     "shadow-run": cmd_shadow,
     "shadow-replay": cmd_shadow,
     "shadow-compare": cmd_shadow,
+    "demo-plan": cmd_demo,
+    "demo-readiness": cmd_demo,
+    "demo-preflight": cmd_demo,
+    "demo-precheck": cmd_demo,
+    "demo-smoke": cmd_demo,
+    "demo-strategy": cmd_demo,
+    "demo-reconcile": cmd_demo,
+    "demo-recover-close": cmd_demo,
     "econometric-plan": cmd_econometrics,
     "econometric-readiness": cmd_econometrics,
     "econometric-smoke": cmd_econometrics,

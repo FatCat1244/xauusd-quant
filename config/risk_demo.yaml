@@ -1,0 +1,15 @@
+# UNCONFIGURED smoke-risk template. Copy into ignored config/local/risk_demo.yaml.
+# Supply a complete Stage16 RiskPolicy, AccountSpec and InstrumentSpec; see
+# docs/stage18_demo_execution.md. No monetary budgets or broker terms are inferred.
+configuration_id: RISK_DEMO_UNCONFIGURED_V001
+policy: null
+account: null
+instrument: null
+# Dedicated smoke policy metadata (these are identities, not risk values):
+# expected_portfolio_id: EXECUTION_SMOKE_V001
+# allowed_allocation_ids: [SMOKE_V001]
+# alpha_contracts: {}
+# require_diagnostic: false
+# sizing_method: horizon_stress
+# All actual blocks require status: verified_supplied and verified provenance.
+# Never change synthetic fixture status to enable orders.

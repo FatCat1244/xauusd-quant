@@ -2,6 +2,17 @@
 
 ## Scope discipline
 
+**Stage #18 authorization (2026-10-05):** separate DEMO-only execution, durable
+intent/risk reservations, actual deal reconciliation and bounded smoke/strategy
+runs when explicit configuration and all gates pass. Stage17 remains read-only.
+No real account, account-type override, unrestricted unattended operation,
+deployment or automatic Stage19. Scientific gates are unchanged; strategy remains
+blocked without an eligible portfolio, complete fresh-feed validation and supplied
+risk terms. Smoke tests are execution evidence, not forecasts or alpha validation.
+Commit/push intended source/tests/public examples/docs after checks; private
+identity, captures and execution journals remain local. Earlier restrictions are
+superseded only for this scope. See `docs/stage18_demo_execution.md`.
+
 **Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
 identity, official read-only market/account metadata APIs, bounded capture,
 causal UTC streaming and local shadow diagnostics are authorized. The shadow

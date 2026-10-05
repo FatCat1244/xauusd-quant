@@ -340,11 +340,33 @@ class RiskEngine:
 
     def evaluate(self, request: RiskRequest, market: MarketSnapshot | None,
                  health: dict[str, HealthSnapshot]) -> dict[str, Any]:
+        return self._evaluate(request, market, health, execution_smoke=False)
+
+    def evaluate_smoke(self, request: RiskRequest, market: MarketSnapshot | None) -> dict[str, Any]:
+        """Explicit lifecycle probe, with the same monetary/exposure/loss guards.
+
+        This is not a forecast or eligible alpha. Only a dedicated smoke policy
+        with no alpha contracts can omit predictive-health inputs. Native demo
+        routing additionally requires SMOKE mode and its frozen specification.
+        """
+        p = self.configuration.policy
+        if (p is None or p.expected_portfolio_id != "EXECUTION_SMOKE_V001"
+            or p.allowed_allocation_ids != ("SMOKE_V001",) or p.alpha_contracts
+            or p.require_diagnostic or p.sizing_method != "horizon_stress"
+            or request.portfolio_id != p.expected_portfolio_id
+            or request.allocation_id != "SMOKE_V001"
+            or set(request.sleeve_lots) != {"EXECUTION_SMOKE"}):
+            raise ValueError("dedicated no-model smoke policy required; strategy health is unchanged")
+        return self._evaluate(request, market, {}, execution_smoke=True)
+
+    def _evaluate(self, request: RiskRequest, market: MarketSnapshot | None,
+                  health: dict[str, HealthSnapshot], *, execution_smoke: bool) -> dict[str, Any]:
         now = utc_time(request.received_utc)
         self._receipt(now)
         old = self.state.decisions.get(request.intent_id)
         if old is not None:
-            if old["request_sha256"] != request.identity:
+            if (old["request_sha256"] != request.identity
+                or old.get("evaluation_kind", "STRATEGY") != ("EXECUTION_SMOKE" if execution_smoke else "STRATEGY")):
                 self._halt("INTENT_ID_COLLISION", now, reconciliation=True)
                 raise ValueError("intent identity collision")
             return deepcopy(old)
@@ -393,7 +415,7 @@ class RiskEngine:
                     and request.portfolio_id == prior["portfolio_id"]
                     and request.allocation_id == prior["allocation_id"]
                     and not self.state.halts and not reasons
-                    and not self._health_reasons(request, health, now)
+                    and (execution_smoke or not self._health_reasons(request, health, now))
                 )
                 if retain:
                     decision, approved = "APPROVE", prior["approved_target_lots"]
@@ -428,7 +450,8 @@ class RiskEngine:
                         decision = "HALT_NEW_EXPOSURE"
                     if request.portfolio_id != p.expected_portfolio_id or request.allocation_id not in p.allowed_allocation_ids:
                         reasons.append("PORTFOLIO_ALLOCATION_MISMATCH")
-                    reasons.extend(self._health_reasons(request, health, now))
+                    if not execution_smoke:
+                        reasons.extend(self._health_reasons(request, health, now))
                     local = now.astimezone(ZoneInfo(p.session_timezone))
                     if local.weekday() not in p.session_weekdays or not p.session_start_hour <= local.hour < p.session_end_hour:
                         reasons.append("SESSION_CLOSED")
@@ -525,6 +548,7 @@ class RiskEngine:
                 self.state.order_times.append(now.isoformat())
                 self.state.turnover.append([now.isoformat(), abs(change)])
         row = {"intent_id": request.intent_id, "request_sha256": request.identity,
+            "evaluation_kind": "EXECUTION_SMOKE" if execution_smoke else "STRATEGY",
             "alpha_ids": sorted(request.sleeve_lots), "portfolio_id": request.portfolio_id,
             "allocation_id": request.allocation_id, "decision_utc": request.decision_utc,
             "received_utc": now, "policy_id": p.policy_id if p else None,
