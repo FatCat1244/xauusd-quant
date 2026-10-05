@@ -13,6 +13,14 @@ Commit/push intended source/tests/public examples/docs after checks; private
 identity, captures and execution journals remain local. Earlier restrictions are
 superseded only for this scope. See `docs/stage18_demo_execution.md`.
 
+Stage #18 follow-up: `scripts/run_unsubmitted_demo_smoke.py` is an explicitly
+invoked operator tool for never-submitted quote aborts only. It uses the existing
+risk rearm audit, keeps all loss/order/intent history, and never changes the native
+quote/identity guard. Any prior submission or non-quote halt blocks it. Its own
+hash is recorded alongside the unchanged `src` identity. The bounded native attempt
+again aborted before order_check/order_send; final account state verified flat.
+No automatic rearm/retry, strategy activation or Stage #19 is authorized.
+
 **Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
 identity, official read-only market/account metadata APIs, bounded capture,
 causal UTC streaming and local shadow diagnostics are authorized. The shadow

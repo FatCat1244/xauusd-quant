@@ -2826,3 +2826,60 @@ and synthetic runtime journals within study directories. Data, captures, private
 account snapshots, model binaries, environments and journals are excluded from Git.
 Final delivery records the commit and verified origin/main hash. Stop after Stage18;
 Stage19 validation is separate and no real-money/deployment authorization is implied.
+
+### Stage #18 follow-up (2026-10-05): explicit never-submitted quote-abort recovery
+
+User supplied local demo risk limits, confirmed exclusive demo-account use and
+enabled Algo Trading. Configured preflights verified exact demo identity, fresh
+quotes, all execution permissions and no current positions/orders. No private
+account or financial settings are included in tracked files. The local position
+budget update was versioned and earlier local configurations preserved.
+
+The first configured precheck attempt, DEMO_USER_SMOKE_PRECHECK_V001, aborted on
+MATERIAL_STATE_CHANGED_REVALIDATION_REQUIRED before actual order_check/order_send.
+DEMO_USER_SMOKE_RECONCILE_V001 verified flat broker state and retired the unused
+reservation while preserving the halt. No actual demo submission was created.
+
+Added scripts/run_unsubmitted_demo_smoke.py and tests/test_demo_operator_rearm.py.
+The explicit operator workflow uses the existing coordinator, risk rearm and
+account journal/lock; no competing execution/accounting or shadow order path.
+Frozen plan DEMO_UNSUBMITTED_REARM_PLAN_V001 permits a single explicit invocation,
+one entry send maximum and configured bounded owned cleanup. Full-journal prior
+submission detection, quote-only halts, fresh identity/account/quote and verified
+flatness gate recovery. All loss, HWM, intent/order/turnover history remains.
+Runtime arming authorization is not inherited on restart. Quote/native/risk guards
+remain unchanged; strategy operation still has zero eligible alphas.
+
+Actual checks:
+
+- Initial new tests:7 failed/7 passed because the fixture's risk kill reasons use
+  a KILL: prefix. Narrow allowlist corrected without permitting other risk halts.
+- Next run:3 failed/11 passed; corrected fixture run identity for a distinct
+  operator invocation and expected identity exception type. Then14 passed.
+- Final targeted command: `.venv\Scripts\python.exe -m pytest
+  tests/test_demo_operator_rearm.py tests/test_demo_guards.py tests/test_demo_state.py
+  tests/test_demo_lifecycle.py tests/test_demo_reconciliation.py tests/test_demo_native.py
+  tests/test_demo_runs.py tests/test_risk_state.py -q -p no:cacheprovider`:
+  **142 passed in10.11seconds**. Includes known fake full lifecycle, failed exit,
+  reservation retention and isolated disabled-submission-guard detection. No native
+  vendor operations occur in ordinary tests. Full suite not run.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:passed.
+- `.venv\Scripts\python.exe -m mypy src scripts/run_unsubmitted_demo_smoke.py`:
+  passed261 source/script files.
+- Native command: `.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py
+  --demo-config config/local/demo.yaml --run-id DEMO_OPERATOR_SMOKE_V001
+  --operator USER_REQUEST`:exit1/NO_VERIFIED_LIFECYCLE in4.577114seconds after
+  another quote change. Operator rearm was audited; no guard bypass or retry.
+  Actual prechecks/submissions/fills/closures all0. Final reconciliation verified
+  positions/orders/reservations/unresolved intents all0 and cash change0. Quote
+  halt and EXPLICIT_REARM_SMOKE_ABORTED retained; no successful demo lifecycle.
+
+Native `src` identity unchanged:
+7b33d23c30f78900d67f31c8cdbc534397e97718f29f6c3bfbf835fb52c8650c.
+Operator-script hash used:
+84474a9a4858915c8f0050b435c3d049d07dadc46bd9b14f011749515a6c82e3.
+Worker stopped before documentation/Git. Changed tracked paths:README.md,
+CLAUDE.md, WORKLOG.md, docs/stage18_demo_execution.md,
+scripts/run_unsubmitted_demo_smoke.py, tests/test_demo_operator_rearm.py.
+Private local configs, backup drafts, native observations, run artifacts and
+account journal remain ignored. No reserved market access or Stage #19 work.

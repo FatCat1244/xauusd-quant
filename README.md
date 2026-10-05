@@ -14,6 +14,12 @@ orders remain blocked pending supplied demo limits and verified account/instrume
 terms. Stage #17 shadow mode remains read-only. See the
 [demo execution specification and configuration guide](docs/stage18_demo_execution.md).
 
+Stage #18 also provides an explicitly invoked operator tool for a reconciled quote
+abort that never attempted submission. It preserves risk history and requires a
+new approval; it cannot rearm any previously submitted/uncertain request. The latest
+bounded native recovery attempt aborted on another quote change, with zero broker
+checks or orders and broker state verified flat. Strategy operation remains blocked.
+
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
    independent dataset verification, tick-to-bar resampling, data-quality

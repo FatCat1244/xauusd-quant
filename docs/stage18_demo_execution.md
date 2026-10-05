@@ -294,3 +294,77 @@ account/instrument terms and risk policy are incomplete. STRATEGY also reports
 NO_ELIGIBLE_ALPHAS, full live equality/feed-transfer and native-binding blockers.
 Ignored local templates were prepared without choosing financial values. No
 evidence-supported trading strategy has been activated. Stop after Stage #18.
+
+## Follow-up: explicit recovery of a never-submitted quote abort
+
+The user subsequently supplied local limits, confirmed dedicated account use and
+enabled the intended demo terminal's Algo Trading permission. Read-only preflights
+verified demo identity, fresh quotes, all execution permission flags and an empty
+current book. Local risk/account/instrument configurations now load; these facts
+do not resolve the zero eligible alpha universe or strategy streaming gates.
+
+A configured `demo-precheck` attempt was halted when the quote changed between
+approval and submission. No broker order_check or order_send was called. Read-only
+reconciliation retired the unsubmitted intent, released its reservation and
+verified flatness while retaining the halt. The exact-state guard is conservative:
+even an ordinary small quote movement can abort entry. This is not a broker rejection.
+
+`scripts/run_unsubmitted_demo_smoke.py` adds a narrow explicit operator workflow:
+
+```powershell
+.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config config/local/demo.yaml --run-id DEMO_OPERATOR_SMOKE_V001 --operator USER_REQUEST
+```
+
+Use a new run identity for new artifacts. This is a broker-changing command for
+a fully configured DEMO SMOKE only; it is not an ordinary test or a shadow command.
+It must be explicitly invoked under existing bounded demo authorization. The
+script freezes DEMO_UNSUBMITTED_REARM_PLAN_V001 before observations. It obtains
+the normal per-account single-writer lock and restores the existing coordinator
+without any checkpoint migration or source-identity exception.
+
+Rearming requires quote-abort halt reasons only, fresh verified demo identity,
+valid quote and permissions, flat reconciled broker state, terminal unsubmitted
+intents, no reservations, and recovered loss/drawdown limits. The full journal is
+checked as well as current intents. Any submission_utc or broker-response evidence
+blocks this path, including a rejected, filled or uncertain request. Other halts,
+unavailable history, incompatible checkpoints, external activity or unknown
+ownership remain blocked.
+
+The existing RiskEngine.rearm records prior halts and operator/reason; an additional
+execution_rearm record identifies the plan and script hash. Loss, high-water mark,
+daily baseline, decisions, order-rate/turnover and old intent history remain intact.
+Only this same process gains permission to arm. A restart still cannot auto-arm.
+The old intent is never resubmitted: a new intent must obtain a new risk approval.
+Native request construction, ownership, exact quote/account binding, expiry and
+precheck/send guards are unchanged. Another quote abort stops this invocation.
+
+The workflow permits one entry send at most and only the configured bounded owned
+cleanup. Unknown ownership or execution retains reservations rather than guessing
+an exit. Cleanup is attempted in the finally path after an interrupted/failed run;
+verified closure and actual deals, not emitted intents, determine success. Broker
+API deadlines and configured cleanup duration remain finite and cannot guarantee
+closure. This tool cannot retry any account with a previous submission.
+
+Validation: 142 targeted tests passed, full-repository Ruff passed, and typing
+passed for 261 source/script files. Seventeen added synthetic tests cover history
+preservation, full-journal submission exclusion, stale/invalid inputs, unrelated
+halts, restart isolation, unchanged quote rejection, verified fake lifecycle and
+failed exit with retained exposure/reservation. A deliberately disabled submission
+guard in an isolated in-memory function caused the relevant guard test to fail;
+the deployed function was unchanged.
+
+Actual DEMO_OPERATOR_SMOKE_V001 was explicitly invoked once. It recorded a valid
+operator rearm, then another quote change aborted before broker precheck or send.
+Result: NO_VERIFIED_LIFECYCLE, zero checks/submissions/deals, zero positions/orders/
+reservations, no unresolved intents and verified flat broker state. The quote halt
+and EXPLICIT_REARM_SMOKE_ABORTED remain persisted. No automatic second attempt or
+weakening of the quote rule was performed. Repeated prompt progression cannot
+turn this negative operational result into strategy or execution readiness.
+
+Native run source identity remained
+`7b33d23c30f78900d67f31c8cdbc534397e97718f29f6c3bfbf835fb52c8650c`.
+Operator-script identity used for that run:
+`84474a9a4858915c8f0050b435c3d049d07dadc46bd9b14f011749515a6c82e3`.
+The broker worker shut down before final documentation/Git operations. Private
+configuration, observations and journals remain ignored. Demo strategy trading and
+Stage #19 remain blocked; actual demo lifecycle success has not been demonstrated.
