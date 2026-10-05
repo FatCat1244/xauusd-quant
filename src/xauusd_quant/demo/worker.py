@@ -11,6 +11,25 @@ from ..shadow.config import ShadowConfig
 from .broker import NativeDemoBroker, Permit
 from .config import DemoConfig
 
+# Only controlled local messages cross IPC as diagnostic codes, never vendor
+# exception text, request contents, credentials or account identifiers.
+VALIDATION_CODES = {
+    "native quote is stale or from the future": "NATIVE_QUOTE_TIME_INVALID",
+    "native economic state changed; risk revalidation required": "NATIVE_ECONOMIC_STATE_CHANGED",
+    "account/book/capabilities changed during fresh risk validation": "NATIVE_FINAL_STATE_CHANGED",
+    "fresh quote exceeds frozen risk limits or reserved envelope": "NATIVE_RISK_LIMIT_EXCEEDED",
+    "fresh account state failed risk validation": "NATIVE_ACCOUNT_RISK_INVALID",
+    "native fresh margin/profit incompatible with risk units": "NATIVE_UNIT_OR_MARGIN_MISMATCH",
+    "unexpired state-bound approval required at native boundary": "NATIVE_APPROVAL_INVALID",
+    "approval expired during native validation": "NATIVE_APPROVAL_EXPIRED",
+    "invalid or incompatible risk checkpoint; do not initialize READY": "NATIVE_RISK_CHECKPOINT_INVALID",
+    "CHECK_BOUNDARY": "NATIVE_CHECK_BOUNDARY_REJECTED",
+    "ORDER_CHECK_CALL": "NATIVE_ORDER_CHECK_EXCEPTION",
+    "SEND_BOUNDARY": "NATIVE_SEND_BOUNDARY_REJECTED",
+    "ORDER_SEND_CALL": "NATIVE_ORDER_SEND_EXCEPTION",
+    "ORDER_SEND_RETURNED": "NATIVE_POST_SEND_EXCEPTION",
+}
+
 
 def serve(config: DemoConfig, terminal: ShadowConfig, pipe: Any) -> None:
     broker = NativeDemoBroker(config, terminal)
@@ -39,8 +58,9 @@ def serve(config: DemoConfig, terminal: ShadowConfig, pipe: Any) -> None:
                 pipe.send(("ok", result))
             except IdentityFailure:
                 pipe.send(("identity_failure", None))
-            except ValueError:
-                pipe.send(("validation_failure", None))
+            except ValueError as exc:
+                pipe.send(("validation_failure", VALIDATION_CODES.get(str(exc),
+                    VALIDATION_CODES.get(getattr(broker, "validation_stage", "")))))
             except Exception:
                 pipe.send(("read_or_submission_failure", None))
     except (EOFError, OSError):
@@ -77,7 +97,8 @@ class DemoProcessBroker:
         if status == "identity_failure":
             raise IdentityFailure("demo identity or permissions could not be verified")
         if status == "validation_failure":
-            raise ValueError("native request boundary rejected invalid state/request")
+            code = result if isinstance(result, str) and result in VALIDATION_CODES.values() else "UNCLASSIFIED"
+            raise ValueError(f"native request boundary rejected invalid state/request: {code}")
         if status != "ok":
             raise ReadFailure("native call failed; do not blindly retry")
         return result
@@ -104,11 +125,11 @@ class DemoProcessBroker:
 
     def check(self, request: dict[str, Any], permit: Permit) -> dict[str, Any] | None:
         self._permit(request, permit)
-        return self._call("check", request, permit.expires_utc, permit.expected_state, permit.max_quote_age_seconds)
+        return self._call("check", request, permit.expires_utc, permit.expected_state, permit.max_quote_age_seconds, permit.revalidation)
 
     def send(self, request: dict[str, Any], permit: Permit) -> dict[str, Any] | None:
         self._permit(request, permit)
-        return self._call("send", request, permit.expires_utc, permit.expected_state, permit.max_quote_age_seconds)
+        return self._call("send", request, permit.expires_utc, permit.expected_state, permit.max_quote_age_seconds, permit.revalidation)
 
     def shutdown(self, *, force: bool = False) -> None:
         process, pipe = self.__process, self.__pipe

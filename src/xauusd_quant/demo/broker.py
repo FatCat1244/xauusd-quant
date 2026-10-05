@@ -13,9 +13,11 @@ from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from ..execution.config import content_hash
+from ..risk.policy import RiskConfiguration
 from ..shadow.adapter import IdentityFailure, MT5ReadOnly, ReadFailure, validate_quote
 from ..shadow.config import ShadowConfig
 from .config import DemoConfig
+from .revalidation import evaluate_quote
 
 
 @dataclass(frozen=True)
@@ -25,6 +27,7 @@ class Permit:
     expires_utc: datetime | None = None
     expected_state: dict[str, Any] | None = None
     max_quote_age_seconds: float | None = None
+    revalidation: dict[str, Any] | None = None
 
 
 def approval_state(snapshot: dict[str, Any], *, closing: bool) -> dict[str, Any]:
@@ -85,6 +88,7 @@ class NativeDemoBroker:
         self.__reader: MT5ReadOnly | None = None
         self.__authority: object | None = None
         self.entries = self.cleanup = 0
+        self.validation_stage = "NOT_STARTED"
 
     def bind(self, authority: object) -> None:
         if self.__authority is not None:
@@ -137,6 +141,9 @@ class NativeDemoBroker:
         if sum(len(v) for v in (positions, orders, history, deals)) > 10000:
             raise ReadFailure("bounded reconciliation history exceeded")
         quote = {k: getattr(tick, k) for k in ("time_msc", "bid", "ask")}
+        # Receipt time follows retrieval. A legitimate tick arriving during
+        # earlier API reads must not be compared to an earlier local clock sample.
+        now = datetime.now(UTC)
         validate_quote(quote, identity["metadata"]["symbol_metadata"])
 
         def rows(values: Any, keys: tuple[str, ...]) -> list[dict[str, Any]]:
@@ -168,7 +175,7 @@ class NativeDemoBroker:
             raise ReadFailure("broker margin/profit calculation unavailable")
         return {"margin": margin, "profit": profit}
 
-    def _boundary(self, request: dict[str, Any], permit: Permit) -> None:
+    def _boundary(self, request: dict[str, Any], permit: Permit) -> dict[str, Any] | None:
         if self.__authority is None or permit.authority is not self.__authority or permit.request_sha256 != content_hash(request):
             raise ValueError("bound risk-coordinator capability required")
         identity = self._identity(True)
@@ -211,6 +218,7 @@ class NativeDemoBroker:
         if tick is None:
             raise ValueError("native executable quote unavailable")
         quote = {k: getattr(tick, k) for k in ("time_msc", "bid", "ask")}
+        now = datetime.now(UTC)  # Quote receipt follows API retrieval, not earlier identity reads.
         validate_quote(quote, identity["metadata"]["symbol_metadata"])
         if not 0 <= now.timestamp() - quote["time_msc"] / 1000 <= permit.max_quote_age_seconds:
             raise ValueError("native quote is stale or from the future")
@@ -232,20 +240,67 @@ class NativeDemoBroker:
                           for p in all_positions],
             "symbol": {k: getattr(symbol, k) for k in permit.expected_state["symbol"]},
         }, closing="position" in request)
-        if current_state != permit.expected_state:
+        expected_state = permit.expected_state.copy()
+        proof = None
+        cfg: RiskConfiguration | None = None
+        if permit.revalidation is not None:
+            if self.config.run_type != "SMOKE" or symbol.trade_exemode != 2 or "position" in request:
+                raise ValueError("fresh quote revalidation supports MARKET entry only")
+            cfg = permit.revalidation.get("configuration")
+            if not isinstance(cfg, RiskConfiguration) or cfg.policy is None or cfg.policy.policy_id != self.config.risk_policy_id:
+                raise ValueError("matching authoritative risk policy required")
+            signed = request["volume"] * (1 if request["type"] == 0 else -1)
+            if not math.isclose(signed, permit.revalidation["signed_lots"], abs_tol=1e-9):
+                raise ValueError("quote revalidation cannot enlarge or reverse approved quantity")
+            # All non-quote state still must match. A quote change is accepted
+            # only after another full Stage16 evaluation at this actual quote.
+            expected_state["quote"] = current_state["quote"]
+        if current_state != expected_state:
             raise ValueError("native economic state changed; risk revalidation required")
+        if permit.revalidation is not None:
+            assert cfg is not None
+            now = datetime.now(UTC)
+            proof = evaluate_quote(permit.revalidation, quote, current_state["account"], now)
+            p, i, a = cfg.policy, cfg.instrument, cfg.account
+            assert p is not None and i is not None and a is not None
+            entry = quote["ask"] if request["type"] == 0 else quote["bid"]
+            adverse = entry * (1 - float(p.horizon_stress_fraction or 0) * (1 if signed > 0 else -1))
+            calculated = self.calculations("BUY" if signed > 0 else "SELL", request["volume"], entry, adverse)
+            expected_profit = (adverse - entry) * signed * i.ounces_per_lot * a.ledger_per_usd
+            if (not math.isclose(calculated["profit"], expected_profit, rel_tol=1e-6,
+                                 abs_tol=.5 * 10 ** -identity["account"].currency_digits)
+                or not 0 <= calculated["margin"] <= proof["measurements"]["margin_required"] + 1e-6):
+                raise ValueError("native fresh margin/profit incompatible with risk units")
+            # Reverify account/permissions after calculations. Quote observation
+            # and broker execution are inherently not an atomic transaction.
+            latest = self._identity(True)
+            latest_symbol = self.__native.symbol_info(self.terminal.symbol)
+            latest_positions, latest_orders = self.__native.positions_get(), self.__native.orders_get()
+            if (any(getattr(latest["account"], k) != v for k, v in current_state["account"].items())
+                or latest_symbol is None or any(getattr(latest_symbol, k) != v for k, v in current_state["symbol"].items())
+                or latest_positions is None or latest_orders is None or latest_positions or latest_orders):
+                raise ValueError("account/book/capabilities changed during fresh risk validation")
         if symbol.trade_exemode != 2 and request["price"] != quote["ask" if request["type"] == 0 else "bid"]:
             raise ValueError("native executable request price changed")
-        if datetime.now(UTC) >= permit.expires_utc:
+        final_now = datetime.now(UTC)
+        if not 0 <= final_now.timestamp() - quote["time_msc"] / 1000 <= permit.max_quote_age_seconds:
+            raise ValueError("native quote is stale or from the future")
+        if final_now >= permit.expires_utc:
             raise ValueError("approval expired during native validation")
+        return proof
 
     def check(self, request: dict[str, Any], permit: Permit) -> dict[str, Any] | None:
-        self._boundary(request, permit)
+        self.validation_stage = "CHECK_BOUNDARY"
+        proof = self._boundary(request, permit)
+        self.validation_stage = "ORDER_CHECK_CALL"
         result = self.__native.order_check(request)
-        return None if result is None else {"retcode": result.retcode}
+        self.validation_stage = "ORDER_CHECK_RETURNED"
+        return None if result is None else {"retcode": result.retcode} | (
+            {"risk_revalidation": proof} if proof is not None else {})
 
     def send(self, request: dict[str, Any], permit: Permit) -> dict[str, Any] | None:
-        self._boundary(request, permit)
+        self.validation_stage = "SEND_BOUNDARY"
+        proof = self._boundary(request, permit)
         if "position" in request:
             if self.cleanup >= int(self.config.cleanup_request_budget or 0):
                 raise ValueError("cleanup request budget exhausted")
@@ -254,10 +309,13 @@ class NativeDemoBroker:
             if self.entries >= min(int(self.config.entry_request_budget or 0), int(self.config.entry_budget or 0)):
                 raise ValueError("entry request budget exhausted")
             self.entries += 1
+        self.validation_stage = "ORDER_SEND_CALL"
         result = self.__native.order_send(request)
+        self.validation_stage = "ORDER_SEND_RETURNED"
         self._identity(False)  # A changed account cannot inherit this response or cleanup.
         return None if result is None else {k: getattr(result, k) for k in (
-            "retcode", "deal", "order", "volume", "price", "request_id", "retcode_external")}
+            "retcode", "deal", "order", "volume", "price", "request_id", "retcode_external")} | (
+            {"risk_revalidation": proof} if proof is not None else {})
 
     def shutdown(self) -> None:
         if self.__reader is not None:

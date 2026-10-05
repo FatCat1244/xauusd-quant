@@ -9,16 +9,18 @@ alpha-portfolio infrastructure. No alpha currently qualifies for portfolio resea
 Forecast contracts remain prediction-only:
 
 Stage #18 adds a separate DEMO-only execution coordinator, durable risk reservations,
-broker-history reconciliation and bounded recovery. No strategy qualifies; actual
-orders remain blocked pending supplied demo limits and verified account/instrument
-terms. Stage #17 shadow mode remains read-only. See the
+broker-history reconciliation and bounded recovery. No strategy qualifies. Local
+demo limits and account/instrument terms are supplied, but an actual smoke lifecycle
+has not passed native validation. Stage #17 shadow mode remains read-only. See the
 [demo execution specification and configuration guide](docs/stage18_demo_execution.md).
 
 Stage #18 also provides an explicitly invoked operator tool for a reconciled quote
 abort that never attempted submission. It preserves risk history and requires a
 new approval; it cannot rearm any previously submitted/uncertain request. The latest
-bounded native recovery attempt aborted on another quote change, with zero broker
-checks or orders and broker state verified flat. Strategy operation remains blocked.
+fresh-quote option reruns full Stage16 same-quantity risk checks with pending risk
+reserved. Its bounded demo attempt recorded no completed broker precheck and no
+order submissions, with final broker state verified flat. A native validation error
+remains unresolved; no automatic retry or strategy operation is enabled.
 
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,

@@ -27,6 +27,7 @@ from ..shadow.config import ShadowConfig
 from .broker import Broker, Permit, approval_state, classify, filling
 from .config import DemoConfig
 from .journal import Journal
+from .revalidation import evaluate_quote
 
 STATES = {"CREATED", "RISK_APPROVED", "CHECKED", "SUBMISSION_ATTEMPTED", "ACCEPTED_OR_PENDING",
           "PARTIALLY_FILLED", "FILLED", "REJECTED", "UNKNOWN", "RECONCILIATION_REQUIRED", "CLOSED_OR_CANCELLED"}
@@ -59,12 +60,15 @@ def settings(config: DemoConfig, risk: RiskConfiguration, *, offline_synthetic: 
 class Coordinator:
     def __init__(self, config: DemoConfig, terminal: ShadowConfig, risk: RiskConfiguration,
                  broker: Broker, journal: Journal, run_id: str, code: str, *,
-                 offline_synthetic: bool = False) -> None:
+                 offline_synthetic: bool = False, fresh_quotes: bool = False) -> None:
         settings(config, risk, offline_synthetic=offline_synthetic)
         if not terminal.configured:
             raise ValueError("explicit demo terminal identity required")
         self.config, self.terminal, self.broker, self.journal = config, terminal, broker, journal
         self.run_id, self.code = run_id, code
+        if fresh_quotes and config.run_type != "SMOKE":
+            raise ValueError("fresh quote revalidation is mechanical SMOKE only")
+        self.fresh_quotes = fresh_quotes
         self.__authority = object()
         broker.bind(self.__authority)
         self.intents: dict[str, dict[str, Any]] = {}
@@ -177,7 +181,8 @@ class Coordinator:
         assert a is not None and i is not None
         positions = snapshot["positions"]
         signed = sum(p["volume"] * (1 if p["type"] == 0 else -1) for p in positions)
-        losses = [v["decision"]["measurements"].get("loss_per_lot", 0)
+        losses = [max(v["decision"]["measurements"].get("loss_per_lot", 0),
+                      v.get("reserved_envelope", {}).get("loss_per_lot", 0))
                   for v in self.intents.values() if not v.get("closing") and v.get("decision")]
         # Preserve the supplied conditional loss convention; this is not a loss ceiling.
         estimate = max(losses, default=0) * abs(signed)
@@ -375,8 +380,38 @@ class Coordinator:
             broker_request["position"] = position["ticket"]
             intent["position_identifier"] = position["identifier"]
         intent.update({"state": "RISK_APPROVED", "request": broker_request, "approval_snapshot": deepcopy(snapshot)})
+        if self.fresh_quotes and not close:
+            if native["trade_exemode"] != 2 or len(self.risk.state.reservations) != 1:
+                raise ValueError("fresh quote mode requires a single reserved MARKET entry")
+            p = self.risk.configuration.policy
+            assert p is not None
+            reservation = self.risk.state.reservations[request.intent_id]
+            # Reserve the supplied allowance, never an enlarged policy budget.
+            reservation.estimated_loss = min(p.account_loss_budget, p.position_loss_budget,
+                                             p.alpha_loss_budget)
+            reservation.margin = snapshot["account"]["margin_free"] - p.minimum_free_margin
+            intent["reserved_envelope"] = {"estimated_loss": reservation.estimated_loss,
+                "margin": reservation.margin, "loss_per_lot": reservation.estimated_loss / volume}
+            self._record("quote_reservation", {"intent_id": request.intent_id,
+                "original_decision": decision, "envelope": intent["reserved_envelope"]})
         self.persist()
         return deepcopy(intent)
+
+    def _quote_payload(self, intent: dict[str, Any]) -> dict[str, Any] | None:
+        if not self.fresh_quotes or intent["closing"]:
+            return None
+        if "reserved_envelope" not in intent:
+            raise ValueError("fresh quote mode requires a persisted risk envelope")
+        return {"configuration": self.risk.configuration, "checkpoint": self.risk.checkpoint(),
+            "intent_id": intent["intent_id"], "signed_lots": intent["decision"]["approved_change_lots"]}
+
+    def _fresh_risk(self, intent: dict[str, Any], snapshot: dict[str, Any], now: datetime) -> None:
+        payload = self._quote_payload(intent)
+        if payload is None:
+            return
+        proof = evaluate_quote(payload, snapshot["quote"], snapshot["account"], now)
+        self._record("quote_revalidation", {"intent_id": intent["intent_id"],
+            "received_utc": now.isoformat(), "quote": snapshot["quote"], "decision": proof})
 
     def submit(self, intent_id: str, current: dict[str, Any], now: datetime, *, precheck_only: bool = False) -> dict[str, Any]:
         intent = self.intents[intent_id]
@@ -395,11 +430,12 @@ class Coordinator:
         previous = intent["approval_snapshot"]
         # Conservative declared fallback: any changed economic quote/account/book
         # abstains; do not silently reuse cached risk approval or chase the price.
-        if not intent["closing"] and (current["quote"]["bid"] != previous["quote"]["bid"] or current["quote"]["ask"] != previous["quote"]["ask"]
+        if not intent["closing"] and ((not self.fresh_quotes and (current["quote"]["bid"] != previous["quote"]["bid"] or current["quote"]["ask"] != previous["quote"]["ask"]))
             or current["account"] != previous["account"] or current["positions"] != previous["positions"]
-            or current["orders"] != previous["orders"]):
+            or current["orders"] != previous["orders"] or current["symbol"] != previous["symbol"]):
             self.halt("MATERIAL_STATE_CHANGED_REVALIDATION_REQUIRED", now)
             raise ValueError("material state changed; abandon this unsubmitted intent and reconcile")
+        self._fresh_risk(intent, current, now)
         p, a, i = self.risk.configuration.policy, self.risk.configuration.account, self.risk.configuration.instrument
         assert p is not None and a is not None and i is not None
         quote = current["quote"]
@@ -421,7 +457,8 @@ class Coordinator:
             raise ValueError("native margin exceeds risk reservation or funds")
         permit = Permit(self.__authority, content_hash(request),
             datetime.fromisoformat(intent["expires_utc"]),
-            approval_state(current, closing=intent["closing"]), p.max_quote_age_seconds)
+            approval_state(current, closing=intent["closing"]), p.max_quote_age_seconds,
+            self._quote_payload(intent))
         check = self.broker.check(request, permit)
         intent["check"] = check
         self._record("broker_precheck", {"intent_id": intent_id, "result": check, "calculations": calculation,
@@ -450,11 +487,13 @@ class Coordinator:
             or not intent["closing"] and (not self.armed or self.risk.state.halts)
             or refreshed["orders"] != current["orders"]
             or (not intent["closing"] and (refreshed["account"] != current["account"] or refreshed["positions"] != current["positions"]
-                or any(refreshed["quote"][k] != current["quote"][k] for k in ("bid", "ask"))))
+                or refreshed["symbol"] != current["symbol"]
+                or not self.fresh_quotes and any(refreshed["quote"][k] != current["quote"][k] for k in ("bid", "ask"))))
             or (intent["closing"] and (refreshed["symbol"]["trade_exemode"] != 2
                 and any(refreshed["quote"][k] != current["quote"][k] for k in ("bid", "ask"))))):
             self.halt("POST_CHECK_STATE_CHANGED", fresh_now)
             raise ValueError("precheck does not permit stale state or expired approval")
+        self._fresh_risk(intent, refreshed, fresh_now)
         fresh_market = MarketSnapshot(datetime.fromtimestamp(refreshed["quote"]["time_msc"] / 1000, UTC), fresh_now,
                                      refreshed["quote"]["bid"], refreshed["quote"]["ask"])
         if self.risk._market_reasons(fresh_market, fresh_now, reducing=intent["closing"]):
@@ -470,7 +509,8 @@ class Coordinator:
         self.persist()  # Crash here is uncertain even if native call never started.
         permit = Permit(self.__authority, content_hash(request),
             datetime.fromisoformat(intent["expires_utc"]),
-            approval_state(refreshed, closing=intent["closing"]), p.max_quote_age_seconds)
+            approval_state(refreshed, closing=intent["closing"]), p.max_quote_age_seconds,
+            self._quote_payload(intent))
         try:
             response = self.broker.send(request, permit)
         except (IdentityFailure, ReadFailure, ValueError, RuntimeError, OSError):

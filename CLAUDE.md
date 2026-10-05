@@ -21,6 +21,15 @@ hash is recorded alongside the unchanged `src` identity. The bounded native atte
 again aborted before order_check/order_send; final account state verified flat.
 No automatic rearm/retry, strategy activation or Stage #19 is authorized.
 
+Stage #18 fresh-quote follow-up is explicitly authorized by the user. The opt-in
+operator flag `--fresh-quotes` uses full Stage16 same-quantity sizing at two parent
+and two native boundaries for MARKET mechanical smoke only. Supplied hard limits
+stay unchanged; a persisted conservative allowance holds risk during submission.
+Non-quote changes still reject. One documented never-submitted predecessor source
+can migrate only with intact identical configuration/history, fresh verified flat
+broker state and explicit audit. Halts/loss/HWM history are retained; no blind retry.
+Default exact-quote handling and read-only shadow operation stay separate. Stop at18.
+
 **Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
 identity, official read-only market/account metadata APIs, bounded capture,
 causal UTC streaming and local shadow diagnostics are authorized. The shadow

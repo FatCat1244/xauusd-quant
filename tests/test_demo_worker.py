@@ -94,3 +94,36 @@ def test_child_has_fixed_demo_verbs_without_generic_vendor_dispatch(tmp_path: Pa
     serve(smoke_config(), terminal, pipe)
     assert pipe.sent == [("validation_failure", None), ("ok", None)]
     assert calls == ["shutdown", "shutdown"] and pipe.closed
+
+
+@pytest.mark.parametrize("message,expected", [
+    ("native quote is stale or from the future", "NATIVE_QUOTE_TIME_INVALID"),
+    ("private vendor exception must not cross IPC", None),
+])
+def test_worker_exposes_only_controlled_validation_codes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, message: str, expected: str | None,
+) -> None:
+    class FakeNative:
+        def __init__(self, *args: Any) -> None:
+            pass
+
+        def bind(self, authority: object) -> None:
+            pass
+
+        def check(self, *args: Any) -> None:
+            raise ValueError(message)
+
+        def shutdown(self) -> None:
+            pass
+
+    class Commands(Pipe):
+        verbs = iter([("check", ({"action": 1},)), ("shutdown", ())])
+
+        def recv(self) -> Any:
+            return next(self.verbs)
+
+    monkeypatch.setattr("xauusd_quant.demo.worker.NativeDemoBroker", FakeNative)
+    pipe = Commands()
+    serve(smoke_config(), local_config(tmp_path / "terminal64.exe"), pipe)
+    assert pipe.sent == [("validation_failure", expected), ("ok", None)]
+    assert message not in str(pipe.sent)

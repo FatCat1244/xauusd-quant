@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -160,7 +161,9 @@ def main() -> int:
                 raise RuntimeError(f"missing mutation anchor: {name}")
             try:
                 path.write_bytes(original.replace(anchor, replacement, 1))
-                command = [sys.executable, "-m", "pytest", test, "-q", "-p", "no:cacheprovider"]
+                report_path = Path(temporary) / f"{name}.xml"
+                command = [sys.executable, "-m", "pytest", test, "-q", "-p", "no:cacheprovider",
+                           "--junitxml", str(report_path)]
                 completed = subprocess.run(
                     command,
                     cwd=ROOT,
@@ -170,13 +173,20 @@ def main() -> int:
                     timeout=90,
                     check=False,
                 )
-                caught = completed.returncode == 1 and "failed" in completed.stdout
+                # A fixture/collection error or "failed" in a test name is not
+                # evidence that disabling the intended guard was detected.
+                report = ET.parse(report_path).getroot() if report_path.exists() else None
+                failures = len(report.findall(".//testcase/failure")) if report is not None else 0
+                errors = len(report.findall(".//testcase/error")) if report is not None else 0
+                caught = completed.returncode == 1 and failures > 0 and errors == 0
                 results.append(
                     {
                         "guard": name,
                         "command": command,
                         "test_detected_break": caught,
                         "returncode": completed.returncode,
+                        "assertion_failures": failures,
+                        "test_errors": errors,
                         "test_output": completed.stdout[-1800:] + completed.stderr[-800:],
                     }
                 )

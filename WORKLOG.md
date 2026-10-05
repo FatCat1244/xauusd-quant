@@ -2883,3 +2883,117 @@ CLAUDE.md, WORKLOG.md, docs/stage18_demo_execution.md,
 scripts/run_unsubmitted_demo_smoke.py, tests/test_demo_operator_rearm.py.
 Private local configs, backup drafts, native observations, run artifacts and
 account journal remain ignored. No reserved market access or Stage #19 work.
+
+### Stage #18 follow-up (2026-10-05): bounded fresh-quote risk revalidation
+
+User explicitly requested continuing the bounded smoke with fresh-quote risk
+revalidation. Initial branch main/origin FatCat1244/xauusd-quant and working tree
+were verified; there were no unrelated changes. Existing V003 local settings were
+retained unchanged. No strategy qualifies; this remains mechanical SMOKE only.
+
+Implemented opt-in --fresh-quotes under DEMO_FRESH_QUOTE_PLAN_V002; an earlier
+draft plan V001 is preserved locally. Two parent and two native evaluations reuse
+the Stage16 engine in isolated calculation copies. Identical approved quantity,
+hard limits, expiry, native identity, account/book/capabilities and units are
+required. The actual unsubmitted reservation persists a conservative allowance
+within supplied budgets and margin headroom; copies retain rate/turnover history.
+Actual open estimated risk retains that allowance. No execution/accounting engine
+was replaced. Default exact-quote handling and shadow read-only isolation remain.
+
+The explicit operator path admits only the documented predecessor source and
+intact same-config journal with no historical submission evidence. It requires
+fresh verified flat reconciliation and records code migration before explicit
+risk rearm. Loss/HWM/daily baseline/order/intent history survives. Subsequent
+non-quote halts and incompatible source are blocked; no generic migration or retry.
+
+Actual commands and outcomes:
+
+- Initial existing targeted execution tests:130 passed in9.62seconds.
+- Initial new fresh-quote tests:10 failed/19 passed. Corrected checkpoint fixture
+  body/checksum construction and chose a loss-cap canary that did not already fail
+  the independent native-margin guard. Then29 passed; extended workflow/clock
+  and worker diagnostic coverage subsequently passed.
+- Final `.venv\Scripts\python.exe -m pytest tests/test_demo_fresh_quotes.py
+  tests/test_demo_operator_rearm.py tests/test_demo_lifecycle.py tests/test_demo_guards.py
+  tests/test_demo_native.py tests/test_demo_reconciliation.py tests/test_demo_runs.py
+  tests/test_demo_state.py tests/test_demo_worker.py tests/test_risk_decisions.py
+  tests/test_risk_state.py -q -p no:cacheprovider`:211 passed in12.80seconds.
+  Full suite/research studies were not run. Tests cover same-quantity moving quotes,
+  loss/margin/turnover/expiry/staleness/cash/permission/metadata rejection, unknown
+  reservations, loss history, restart isolation, guarded migration, native rerisk,
+  quote receipt timing, safe IPC diagnostics and hand-checkable fake closure/cash.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:passed.
+- `.venv\Scripts\python.exe -m mypy src scripts/run_unsubmitted_demo_smoke.py
+  scripts/verify_fresh_quote_artifacts.py`:passed263 source/script files.
+- `scripts/check_demo_guards.py --output results/demo/guards/DEMO_FRESH_QUOTE_GUARDS_V001.json`
+  failed because sandbox-denied pytest temporary folders caused fixture errors.
+  The shared mutation runner's substring detector could mistake "failed" in a
+  test name/error output for detection. Fixed it to require JUnit assertion
+  failures and zero testcase errors. Retained V001 rather than overwriting.
+  Escalated offline runs V002/V003 were allowed to access temporary folders.
+  Final V003 detected all11 deliberately disabled guards, including full fresh
+  risk and post-retrieval quote clock. Original source remained unchanged.
+- `demo-preflight --demo-config config/local/demo.yaml --terminal-config
+  config/local/shadow.yaml --run-id DEMO_FRESH_QUOTE_PREFLIGHT_V001`:verified DEMO
+  identity, HEDGING, fresh quote, execution permissions, no current orders/positions.
+- `.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config
+  config/local/demo.yaml --run-id DEMO_FRESH_QUOTE_SMOKE_V001 --operator USER_REQUEST
+  --fresh-quotes`:exit1/NO_VERIFIED_LIFECYCLE,4.595128seconds. Explicit migration
+  and rearm were audited; parent fresh-risk evaluation APPROVE. The native-worker
+  precheck path returned ValueError before any submission. No completed precheck
+  result was recorded; the exact native boundary/API failure phase was not logged,
+  so actual order_check invocation count is unknown. Broker-changing submissions,
+  entry/close deals and cash change all0. Final reconciliation verified flat,
+  positions/orders/reservations/unresolved intents all0. Wrapper halt retained.
+  No second invocation or blind retry. No strategy/Stage19 operation.
+- A subsequent read-only margin/profit calculation at the recorded quote returned
+  compatible linear-CFD profit within currency precision; no check/send/fill.
+  Independently reproduced an early quote-clock sample that could classify a tick
+  arriving during API reads as future. Fixed clock sampling after retrieval and
+  added the canary; this is not a confirmed explanation of the actual failure.
+  Added controlled worker error codes/API phases and operator last-phase reporting
+  after the worker stopped. These final additions have offline evidence only.
+- `scripts/verify_fresh_quote_artifacts.py --demo-config config/local/demo.yaml
+  --output results/demo/FINAL_FRESH_QUOTE_VERIFICATION_V001.json`:passed, status
+  FAILED_NATIVE_LIFECYCLE_PRESERVED. Initial import/typing failure was corrected to
+  reuse shadow.runs.read_frozen; verifier checks immutable artifacts, full journal
+  hash chain, risk checkpoint, migration, fresh decision, zero submissions and
+  flat/cash reconciliation without connecting to MT5. It does not promote failure.
+- Read-only Windows process inspection, escalated after sandbox denied CIM access,
+  confirmed no smoke/spawn/demo worker remained before final documentation/Git.
+
+Actual native source identity:
+220270ae2d4849cc636fa5b6a48b9a66e1154eedf95a19cd5581a0eeedd6e0e9.
+Actual native operator script:
+3e2b2f2199866232c6bc667769eac1963a9b47b63d32e5ff55a0839234361f17.
+Final offline-tested source identity:
+caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28.
+Source changes occurred only after the bounded native process stopped. The
+preserved native checkpoint is not relabeled as final-source validation. Its
+post-run source mismatch and unresolved non-quote halt block automatic recovery.
+
+Changed public paths:README.md, CLAUDE.md, WORKLOG.md,
+docs/stage18_demo_execution.md; scripts/check_demo_guards.py,
+scripts/check_execution_guards.py, scripts/run_unsubmitted_demo_smoke.py,
+scripts/verify_fresh_quote_artifacts.py; src/xauusd_quant/demo/broker.py,
+coordinator.py, worker.py, revalidation.py; tests/test_demo_fresh_quotes.py,
+tests/test_demo_worker.py. Private configuration/notes, journals, native snapshots,
+plans, failures and verification artifacts remain ignored and local. No reserved
+historical data access, financial-limit tuning, real trading or Stage19 work.
+
+Remaining blockers:unclassified native validation failure, no verified demo
+entry/closure, post-run diagnostic/clock changes not native-validated, retained
+halt/source compatibility gate, zero eligible strategy alphas and missing full
+live feature/model equality/feed transfer. Commit/push is authorized; no merge or
+deployment is implied. Stop after Stage18.
+
+Final artifact verification was repeated as FINAL_FRESH_QUOTE_VERIFICATION_V002
+after strengthening native source/script consistency and requiring exactly one
+recorded smoke intent; it again preserved FAILED_NATIVE_LIFECYCLE_PRESERVED.
+
+Final review added a post-calculation native quote-age check; a deliberately slow
+fake margin calculation verifies that no precheck occurs after the quote ages out.
+A test-edit indentation error was caught by pytest collection and Ruff, corrected,
+then the final targeted command passed211 tests in13.08seconds. Ruff and typing
+passed. FINAL_FRESH_QUOTE_VERIFICATION_V003 verifies the final source identity above
+while retaining the actual native source separately. No further broker invocation.

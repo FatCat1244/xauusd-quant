@@ -368,3 +368,107 @@ Operator-script identity used for that run:
 The broker worker shut down before final documentation/Git operations. Private
 configuration, observations and journals remain ignored. Demo strategy trading and
 Stage #19 remain blocked; actual demo lifecycle success has not been demonstrated.
+
+## Follow-up: bounded fresh-quote revalidation
+
+The user authorized correcting the quote-only abort and another single bounded
+mechanical demo lifecycle. `--fresh-quotes` explicitly selects
+DEMO_FRESH_QUOTE_PLAN_V002. Ordinary CLI/default operator runs retain the prior
+exact-price binding. The new mode supports MARKET smoke entries only, with no
+strategy activation, expiry extension, quantity increase or automatic retry.
+
+Before checking an order, the coordinator persists a reservation for the smaller
+of the supplied position, sole-sleeve and account risk allowances, and the available
+margin headroom above the configured floor. Only one flat-account entry can be
+reserved. These are conservative reservations within existing budgets, not new
+financial settings or guaranteed loss ceilings. Actual open estimated risk retains
+the conservative allowance until verified closure.
+
+At each of two parent snapshots and each of the native precheck/send boundaries,
+the existing Stage16 engine is restored into an isolated calculation copy. Only
+that copy's unsubmitted reservation is replaced for the calculation. The actual
+reservation, loss/high-water marks, order-rate and turnover history remain intact.
+The new decision must approve the identical signed quantity and fit within the
+reserved allowance and margin. Revalidation counts conservatively as an extra
+approval in the calculation copy; it never clears actual rate/turnover history.
+Native margin/profit units are checked again using the observed executable quote.
+Account, positions, orders, instrument capabilities, identity, permissions,
+freshness, session, limits and expiry still gate execution. There is no quote loop
+or broker resubmission. Quote observation and execution are not atomic, so this
+does not guarantee a fill price, stop loss or realized loss ceiling.
+
+Example for an explicitly authorized configured DEMO smoke invocation:
+
+```powershell
+.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config config/local/demo.yaml --run-id DEMO_FRESH_QUOTE_SMOKE_V001 --operator USER_REQUEST --fresh-quotes
+```
+
+The operator tool can migrate only the documented predecessor source
+`7b33d23c30f78900d67f31c8cdbc534397e97718f29f6c3bfbf835fb52c8650c`.
+The hash-chained journal must end in a complete checkpoint; configuration and
+terminal identities and risk checkpoint validation must match. Every historical
+checkpoint is inspected for submissions, and any broker response prohibits this
+path. Fresh identity, permissions, quotes and verified flat reconciliation are
+required. Migration records old/new source identities and operator before the
+explicit risk rearm audit. Prior loss/drawdown/HWM/order/intent history survives;
+no journal deletion, unconfirmed exposure adoption or generic code bypass exists.
+Any non-quote halt remains blocked. The prior wrapper abort is admitted only
+alongside a recorded never-submitted quote halt in this opt-in mode.
+
+Native quote receipt time is sampled after tick retrieval; ticks genuinely dated
+after that receipt remain rejected. A hand-checkable test models a tick arriving
+during API reads, and a final age check rejects a quote that ages out during native
+risk calculations. Worker errors now expose only controlled local validation codes
+and distinguish boundary rejection from a check/send API exception; arbitrary
+vendor messages or private identity cannot cross this diagnostic path. Operator
+verdicts retain the last phase and safe failure code. These additions were made
+after the bounded worker stopped; they were not used in that native attempt.
+
+Actual `DEMO_FRESH_QUOTE_PREFLIGHT_V001` verified demo identity, HEDGING mode, all
+execution permissions, a fresh quote and an empty book. Actual
+`DEMO_FRESH_QUOTE_SMOKE_V001` migrated the documented unsubmitted predecessor with
+audit, rearmed explicitly and obtained an APPROVE on the first full fresh-quote
+Stage16 evaluation. It then returned a native-worker ValueError in the precheck
+path. No successful precheck result was recorded. The old worker did not preserve
+the exact boundary/API failure phase, so order_check invocation itself cannot be
+certified from this evidence. There were **zero broker-changing submissions**, zero
+entry/close deals and zero broker-reported cash change. Final reconciliation
+verified positions, orders, reservations and unresolved intents all zero. The
+EXPLICIT_REARM_SMOKE_ABORTED halt remains. Status: NO_VERIFIED_LIFECYCLE; wall time
+4.595128 seconds. No second invocation or entry retry was made.
+
+A subsequent read-only margin/profit calculation at the recorded quote matched
+the supplied linear CFD profit units within currency precision; it did not check,
+submit or fill an order. The subsequently reproduced early-clock bug is not a
+confirmed cause of the native failure. Full native diagnostics remain a blocker.
+After source changes, the journal's run identity remains its actual validated
+source identity; it is not relabeled as the final code. The generic runtime
+rejects that mismatch, and the operator tool cannot migrate this new halt as an
+original quote-only abort. No checkpoint deletion or automatic rearm is permitted.
+
+Native run source identity:
+`220270ae2d4849cc636fa5b6a48b9a66e1154eedf95a19cd5581a0eeedd6e0e9`.
+Operator script used:
+`3e2b2f2199866232c6bc667769eac1963a9b47b63d32e5ff55a0839234361f17`.
+The post-run diagnostic/clock changes have only offline test evidence. Strategy
+eligibility, feed-transfer/full-model equality and Stage #19 remain unresolved;
+this work establishes neither a successful demo lifecycle nor trading readiness.
+
+Final verification:211 targeted tests passed (13.08seconds), full Ruff passed,
+typing passed263 source/script files, and all11 isolated disabled-guard canaries
+were detected with deployed source unchanged. The initial sandbox-denied mutation
+run is preserved; the shared runner now requires JUnit assertion failures without
+fixture errors rather than matching a word in console output. The local evidence
+verifier is broker-free:
+
+```powershell
+.venv\Scripts\python.exe scripts/verify_fresh_quote_artifacts.py --demo-config config/local/demo.yaml --output results/demo/FINAL_FRESH_QUOTE_VERIFICATION_V001.json
+```
+
+Use a new output version to rerun. It validates frozen reports, risk checkpoint,
+full journal chain, migration/revalidation, zero submissions and flat cash
+reconciliation. Its successful verification preserves the failed lifecycle status.
+Final offline-tested source:
+`caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28`.
+Final artifact verification was repeated as V003 after the final age guard, without
+broker connectivity or alteration of the preserved halt/checkpoint.
