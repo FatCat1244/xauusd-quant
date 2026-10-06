@@ -472,3 +472,127 @@ Final offline-tested source:
 `caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28`.
 Final artifact verification was repeated as V003 after the final age guard, without
 broker connectivity or alteration of the preserved halt/checkpoint.
+
+## Continuation: diagnostic and fresh feed observation
+
+The user requested completion of the remaining work. The continuation preserves
+supplied local financial settings and the dedicated mechanical SMOKE specification.
+No evidence-supported trading strategy has been selected: ALPHA_REGISTRY_V003
+contains 66 BLOCKED entries, including 16 directional candidates and 50 diagnostics.
+Saved metadata lists 37 model and 13 ensemble specifications; those counts are
+not live-compatible fitted artifacts or qualified alphas. The model ensemble is
+unchanged. No search expansion or historical training study was run.
+
+Missing scientific prerequisites remain matched prior-only random-walk/sign-flip
+pipeline controls, verified historical execution/account assumptions, audited full
+legacy fold-local feature/count/universe chronology, adequate chronological coverage
+and independently established uninspected evaluation evidence. Current demo terms
+do not retroactively verify historical execution economics. Previously inspected
+2022+ outcomes remain reserved and were not loaded. Strategy feed transfer, full
+feature/model streaming equality and strategy-specific risk settings are also
+unresolved. The configured demo risk policy governs SMOKE only.
+
+The operator tool now offers `--recover-validation-abort` and `--precheck-only`.
+Exceptional recovery requires the original frozen failed-run/configuration hashes,
+its intact full journal, zero historical submission evidence and fresh permitted
+flat reconciliation. Only the documented unsubmitted native wrapper halt may be
+rearmed; severe or unrelated halts block. Known source migration and explicit
+operator rearm are audited. No loss/HWM/order/turnover history is reset.
+
+V001 diagnostic/recovery plans were frozen before observation. After its session
+rejection, V002 plans were frozen with explicit session-rejection recovery and a
+mandatory successful current-source precheck gate before smoke. This is a recorded
+workflow change, not a revision of execution/economic acceptance criteria. V001
+artifacts remain immutable. A session-only rejection must have zero approved
+change, no broker check/send, identical configuration/source and frozen diagnostic
+evidence. It never counts as a passing precheck. A marker alone is insufficient:
+the latest diagnostic needs its durable approved intent, successful check code 0
+and zero submission. The tool refuses premature recovery smoke before connection.
+One diagnostic attempt is persisted before entering the check path; interruption
+or failure consumes it and does not create an automatic diagnostic retry.
+
+Diagnostic mode cannot submit entry or cleanup orders. Unexpected exposure retains
+a halt and unresolved state; it cannot be adopted or closed by a check-only run.
+Actual smoke cleanup remains bounded and requires verified project ownership.
+Ordinary shadow paths remain read-only.
+
+Actual continuation results:
+
+| Observation | Result |
+|---|---|
+| DEMO_CONTINUE_PREFLIGHT_V001 | Configured demo identity, HEDGING, permissions, fresh quote and empty book verified |
+| DEMO_NATIVE_DIAGNOSTIC_V001 | Risk REJECT: SESSION_CLOSED and OVERNIGHT_RESTRICTION, 4.506309 seconds |
+| Broker calls from that diagnostic | Zero order_check calls, zero submissions, zero entry/close deals |
+| Final reconciliation | Flat verified; no orders/positions/reservations/unresolved intents; cash discrepancy 0 |
+| Original native ValueError | Unresolved: this diagnostic never reached the native boundary |
+| EXNESS_CONTINUE_CAPTURE_V001 | Read-only 59.802941 seconds, 2507 ticks: 229 fresh, 2278 backfill; no halts |
+| EXNESS_CONTINUE_REPLAY_V001 | 48 committed batches, 2507 ticks, four bars |
+| EXNESS_CONTINUE_EQUALITY_V001 | Four bars/features/NO_ACTION records matched, zero mismatches; predictions0 |
+
+All four emitted bars were reconstructed backfill (three 5m, one 15m); two partial
+startup bars were invalid. The capture emitted no newly completed live bar.
+Features were monitoring ret_1 only. Full model and portfolio/risk equality remain
+untested. Peak own-process working set 243789824 bytes, private bytes 694235136;
+worker memory excluded. This was a fresh-feed observation, not strategy evaluation.
+
+The supplied session is weekdays 07:00-17:00 UTC (14:00-00:00 Bangkok). The diagnostic
+occurred at 2026-10-06 17:21:41 UTC, outside that window. Its original generic
+NO_VERIFIED_LIFECYCLE verdict is preserved; a derived verified classification is
+RISK_BLOCKED_NO_ORDERS. Future operator reports include the risk decision/rules
+directly. The original wrapper halt was explicitly rearmed and retained in audit;
+after the session rejection the checkpoint had READY risk and no active halt.
+Restoration still requires reconciliation and explicit arming. No second native
+attempt was made, no limits were altered, and no unattended wait/run was scheduled.
+
+Actual observation source identity:
+`caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28`.
+Actual diagnostic operator-script identity:
+`8eeb66faaa1ff9847518cc4ad0afb5c99fc023a760d3ccf79d6902d81f883f69`.
+Subsequent script safeguards have offline validation only. All bounded native
+processes stopped before final edits and Git operations.
+
+### Commands for the next permitted session
+
+The next permitted entry window after this attempt starts 7 October 2026 at 14:00
+Bangkok (07:00 UTC). A later invocation must still satisfy fresh identity, session,
+spread, funds, risk, ownership and configured duration/budget checks. No additional
+financial values are required for this configured SMOKE; strategy remains blocked.
+Run from the repository and retain new run identities:
+
+```powershell
+.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config config/local/demo.yaml --run-id DEMO_NATIVE_DIAGNOSTIC_V002 --operator USER_REQUEST --fresh-quotes --recover-validation-abort --precheck-only
+```
+
+Proceed only on BROKER_PRECHECK_PASSED_NO_ORDERS with verified flatness. A successful
+diagnostic consumes approval-rate/turnover history despite submitting nothing.
+Let the configured 300-second measurement window expire naturally before smoke;
+do not delete checkpoints, reset counters or loosen limits. Then explicitly invoke
+one bounded mechanical lifecycle:
+
+```powershell
+.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config config/local/demo.yaml --run-id DEMO_NATIVE_RECOVERY_SMOKE_V001 --operator USER_REQUEST --fresh-quotes --recover-validation-abort
+```
+
+This second command may submit actual demo entry and verified owned exit requests.
+It tests execution lifecycle only, not the trading strategy. Failure or unresolved
+exposure stops progression; no blind resubmission. The supplied risk budget is a
+scenario allowance, not a guaranteed realized loss ceiling.
+
+Broker-free verification of the completed observation:
+
+```powershell
+.venv\Scripts\python.exe scripts/verify_demo_continuation.py --demo-config config/local/demo.yaml --output results/demo/DEMO_CONTINUATION_VERIFICATION_V003.json
+```
+
+V001/V002 already exist. The verifier is deliberately bound to this completed
+observation and its current checkpoint; after a new native run, a new matching
+verification specification is needed. It verifies frozen records, full journal,
+risk checkpoint, retained financial history across rearm, capture manifest,
+recomputed observed-table equality and saved registry evidence. Its limited
+before/after access-log comparison covers verification only. It never connects
+to MT5 or reads historical market partitions. It preserves negative conclusions.
+
+Offline validation passed 288 targeted tests, full Ruff and typing for 264 files.
+Two deliberately disabled guards were detected in isolated in-memory tests.
+Actual command records are in WORKLOG.md. No Stage19 work,
+strategy activation, real-money execution or deployment occurred.

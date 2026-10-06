@@ -2997,3 +2997,128 @@ A test-edit indentation error was caught by pytest collection and Ruff, correcte
 then the final targeted command passed211 tests in13.08seconds. Ruff and typing
 passed. FINAL_FRESH_QUOTE_VERIFICATION_V003 verifies the final source identity above
 while retaining the actual native source separately. No further broker invocation.
+
+## 2026-10-07: Stage18 continuation, diagnostic gate and fresh-feed replay
+
+User request: "let's do the rest" after discussing demo readiness. Continued
+authorized Stage18 mechanical diagnostics and read-only observation. No Stage19,
+strategy activation, financial-limit changes or unrestricted run. Initial branch
+main, origin FatCat1244/xauusd-quant, clean working tree at644b3a2 were verified.
+The configured account remains dedicated; private configuration stays ignored.
+
+Reviewed actual Stage14/15 metadata, Stage16 risk state and Stage17/18 evidence.
+ALPHA_REGISTRY_V003 retains66 BLOCKED entries (16 directional,50 diagnostics).
+Metadata-only inventory found37 model and13 ensemble specs, without loading binaries.
+Missing matched prior-only pipeline nulls, verified historical execution/account
+terms, full legacy fold-local chronology, adequate chronological coverage and
+independent uninspected evidence remain scientific blockers. Full live model/feature
+equality/feed transfer and strategy-specific risk configuration remain unresolved.
+Supplied local risk is SMOKE only; no candidate was promoted or search expanded.
+
+Implemented an opt-in recovery of the documented unsubmitted native ValueError:
+hash-verified frozen failed-run/provenance, matching settings, intact full journal,
+fresh demo identity/flat reconciliation and wrapper-only halt. Audit precedes
+known-source migration and explicit risk rearm. History/HWM/loss/order/turnover
+records survive. Added precheck-only mode with no entry or cleanup sends. Default
+exact-quote paths and shadow isolation are unchanged.
+
+V001 plans were frozen before the native diagnostic. After its risk rejection,
+V002 plans explicitly admit frozen session-only zero-approval diagnostic recovery
+and require a durable successful current-source precheck before recovery smoke.
+A marker alone cannot pass. The last diagnostic's approved intent and check code0
+must support it. One attempted diagnostic is persisted before its check path;
+failure/interruption consumes its bounded budget. Neither restart nor repeated
+invocation permits a blind diagnostic/submission retry. Premature smoke stops
+before connection. Native V001 failure artifacts were preserved, not relabeled.
+
+Actual native/read-only commands and outcomes:
+
+- `demo-preflight --demo-config config/local/demo.yaml --terminal-config
+  config/local/shadow.yaml --run-id DEMO_CONTINUE_PREFLIGHT_V001`:configured demo
+  identity, HEDGING, execution permissions, fresh quote and empty book passed.
+- `.venv\Scripts\python.exe scripts/run_unsubmitted_demo_smoke.py --demo-config
+  config/local/demo.yaml --run-id DEMO_NATIVE_DIAGNOSTIC_V001 --operator USER_REQUEST
+  --fresh-quotes --recover-validation-abort --precheck-only`:exit1,4.506309 seconds.
+  Audited original wrapper recovery/source migration succeeded. Risk rejected
+  SESSION_CLOSED and OVERNIGHT_RESTRICTION at2026-10-06 17:21:41 UTC; the supplied
+  weekday session is07:00-17:00 UTC. No order_check or order_send reached, zero
+  submissions/entry deals/close deals/cash change. Final broker reconciliation
+  verified flat, zero positions/orders/reservations/unresolved intents. Risk READY,
+  no current halt; original halt/rearm records remain audited. Original native
+  ValueError is still unexplained because this run never reached that boundary.
+  No second native attempt, time fabrication, session widening or unattended wait.
+- `.venv\Scripts\python.exe -m xauusd_quant.cli shadow-capture --shadow-config
+  config/local/shadow.yaml --run-id EXNESS_CONTINUE_CAPTURE_V001`:59.802941 seconds,
+  49 polls/no reconnects,2507 committed ticks (2278 backfill,229 fresh live).
+  No halts, simulated fills or broker orders. Peak own-process working set243789824
+  bytes/private694235136 bytes; worker memory excluded. Four emitted backfill bars
+  (three5m/one15m), two invalid partial startup bars. No newly completed live bar.
+  Four monitoring ret_1 feature rows, four blocked NO_ACTION records; no predictions.
+- `shadow-replay --shadow-config config/local/shadow.yaml --recorded
+  results/shadow/runs/EXNESS_CONTINUE_CAPTURE_V001 --run-id EXNESS_CONTINUE_REPLAY_V001`:
+  replayed48 committed batches/2507 ticks/four bars.
+- `shadow-compare --shadow-config config/local/shadow.yaml --recorded
+  results/shadow/runs/EXNESS_CONTINUE_CAPTURE_V001 --replayed
+  results/shadow/runs/EXNESS_CONTINUE_REPLAY_V001 --run-id EXNESS_CONTINUE_EQUALITY_V001`:
+  zero mismatches/four bar,feature,blocked-action rows. Float rtol1e-5/atol1e-7,
+  exact integer/clocks. Predictions0:full model/pipeline equality unavailable.
+- Broker-free `scripts/verify_demo_continuation.py --demo-config config/local/demo.yaml
+  --output results/demo/DEMO_CONTINUATION_VERIFICATION_V001.json`:passed,
+  RISK_BLOCKED_NO_ORDERS. Repeated asV002 after adding direct before/after financial
+  history checks across rearm. It validates immutable original reports, full journal,
+  risk checkpoint, capture manifest and recomputed comparison, registry hashes and
+  limited before/after access-log stability. No historical dataset/model/broker read.
+  The original generic NO_VERIFIED_LIFECYCLE is preserved alongside its derived
+  session-rejection classification. Flatness refers to run-end evidence, not a new read.
+
+Actual native/capture/replay source identity:
+caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28.
+Actual diagnostic operator-script hash:
+8eeb66faaa1ff9847518cc4ad0afb5c99fc023a760d3ccf79d6902d81f883f69.
+Later operator safeguards have offline evidence; source modules were not edited.
+Windows process inspection confirmed no smoke/spawn/demo worker remained before
+final documentation/Git. Fresh read-only capture is separate from strategy evidence.
+
+Validation:
+
+- Initial new tests:11 passed; existing recovery/fresh tests59 passed. Extension
+  initially failed synthetic fixture identity/session assumptions and the isolated
+  mutation's dependency binding; corrected to unique intent IDs, actual synthetic
+  weekday session, connected-only cleanup and patched dependencies in the mutation.
+  Then23 recovery tests passed, including hand-checkable precheck->bounded fake
+  entry/closure after naturally expired counters and session rejection without check.
+- Deliberately disabled full-history submission and precheck-before-smoke guards
+  in isolated in-memory copies; both relevant assertion tests failed as required.
+  Deployed functions stayed intact. No broker-changing integration tests ran.
+- `.venv\Scripts\python.exe -m pytest tests/test_demo_native_recovery.py
+  tests/test_demo_operator_rearm.py tests/test_demo_fresh_quotes.py
+  tests/test_demo_lifecycle.py tests/test_demo_guards.py tests/test_demo_native.py
+  tests/test_demo_reconciliation.py tests/test_demo_runs.py tests/test_demo_state.py
+  tests/test_demo_worker.py tests/test_risk_decisions.py tests/test_risk_state.py
+  tests/test_shadow_adapter.py tests/test_shadow_ingestion.py tests/test_shadow_pipeline.py
+  tests/test_shadow_streaming.py tests/test_shadow_runs.py -q -p no:cacheprovider`:
+  earlier286 passed in31.57 seconds before the last two added cases; final result
+  recorded below. No full suite or research study.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`:passed.
+- `.venv\Scripts\python.exe -m mypy src scripts/run_unsubmitted_demo_smoke.py
+  scripts/verify_fresh_quote_artifacts.py scripts/verify_demo_continuation.py`:
+  passed264 source/script files. `git diff --check`:passed.
+
+Changed public paths:README.md,CLAUDE.md,WORKLOG.md,docs/stage17_shadow.md,
+docs/stage18_demo_execution.md,scripts/run_unsubmitted_demo_smoke.py,
+scripts/verify_demo_continuation.py,tests/test_demo_native_recovery.py. Captures,
+execution journals, plans/results and supplied local account/risk configuration
+remain ignored. Commit/push completed intended paths is authorized; no merge/deploy.
+
+Remaining bounded lifecycle step is a diagnostic in a permitted session, then
+one explicitly invoked smoke only if it passes and configured approval counters
+expire naturally. Next session after this attempt:7 October2026,14:00 Bangkok.
+No completed broker lifecycle or evidence-supported trading strategy exists.
+Strategy operation and Stage19 remain blocked. Exact Windows commands and honest
+negative/partial validation are documented in docs/stage18_demo_execution.md.
+
+Final targeted command above:288 passed in26.15 seconds. The last added cases
+verify persisted diagnostic-budget exhaustion before connection and explicit
+session-rejection reporting with forbidden check/send traps. Ruff and typing passed
+after those changes; no subsequent code changes. Verification V002 remains the
+final bounded-observation classification. No further broker activity.

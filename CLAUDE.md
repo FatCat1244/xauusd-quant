@@ -30,6 +30,29 @@ can migrate only with intact identical configuration/history, fresh verified fla
 broker state and explicit audit. Halts/loss/HWM history are retained; no blind retry.
 Default exact-quote handling and read-only shadow operation stay separate. Stop at18.
 
+Stage #18 continuation (2026-10-07), explicitly requested by the user: diagnose the
+documented zero-submission native abort using a precheck-only run, then at most one
+bounded smoke if gates pass. The exceptional operator recovery must match immutable
+failed-run provenance/configuration and the intact no-submission journal, reconcile
+fresh DEMO identity and flatness, and preserve loss/HWM/order/turnover history.
+Only the documented wrapper halt can be rearmed; severe or unrelated halts block.
+Known source migration is audited. Diagnostic mode cannot send orders. V002
+requires a durable successful current-source diagnostic before recovery smoke,
+and reserves only one diagnostic attempt. An earlier zero-approval session-only
+rejection may be explicitly recovered with frozen evidence; no unrelated rejection
+qualifies. Session rules remain unchanged. Approval
+windows remain enforced and must expire naturally before another approval if needed.
+Capture/replay may assess observed feed processing; absent eligible models/alphas
+stay blocked. No financial-limit changes, real trading or automatic Stage19.
+
+Actual continuation preflight passed. The diagnostic was rejected outside the
+supplied 07:00-17:00 UTC weekday session, before native check/send: zero submissions,
+deals/reservations/unresolved intents and verified flat at run end. Original native
+ValueError remains unexplained. A read-only 59.80-second capture accepted 229 fresh
+ticks plus 2278 backfill ticks. Four reconstructed backfill bars/monitoring feature
+rows and blocked actions matched replay; zero predictions, no full model equality.
+All 66 registered candidates remain BLOCKED. See Stage18 follow-up documentation.
+
 **Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
 identity, official read-only market/account metadata APIs, bounded capture,
 causal UTC streaming and local shadow diagnostics are authorized. The shadow

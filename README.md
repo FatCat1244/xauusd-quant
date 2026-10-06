@@ -22,6 +22,14 @@ reserved. Its bounded demo attempt recorded no completed broker precheck and no
 order submissions, with final broker state verified flat. A native validation error
 remains unresolved; no automatic retry or strategy operation is enabled.
 
+The latest bounded continuation verified a fresh demo feed (229 fresh ticks plus
+2278 backfill ticks) and matching replay of four reconstructed backfill bars,
+monitoring features and blocked actions. No model predictions were produced.
+Its precheck diagnostic was rejected by the configured session before broker
+checking or submission; the account was verified flat. The operator tool now
+requires a successful durable diagnostic before recovery smoke. See the
+[continuation record and next-session commands](docs/stage18_demo_execution.md#continuation-diagnostic-and-fresh-feed-observation).
+
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
    independent dataset verification, tick-to-bar resampling, data-quality
@@ -2921,8 +2929,10 @@ xq shadow-capture --shadow-config config/local/shadow.yaml --run-id EXNESS_CAPTU
 
 See the [Stage17 architecture, validation record and Windows runbook](docs/stage17_shadow.md).
 The configured native demo preflight passed. A bounded capture returned zero
-ticks/bars and non-fresh quotes; fresh live processing remains unvalidated, and
-comparison of its empty replay does not establish pipeline equality.
+ticks/bars and non-fresh quotes; comparison of that empty replay does not establish
+pipeline equality. The later Stage18 continuation captured fresh ticks and matched
+observed bar/monitoring-feature tables, while full model and pipeline equality
+remain untested. Both observation records are preserved.
 Keep identities in ignored `config/local/`; captures, checkpoints, runtime logs,
 model binaries and datasets stay local. The user authorizes commit/push after
 checks for this stage and prefers that workflow for future completed stages.

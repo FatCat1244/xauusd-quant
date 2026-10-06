@@ -276,3 +276,24 @@ Official primary references checked for API/time/account semantics:
 [terminal info](https://www.mql5.com/en/docs/python_metatrader5/mt5terminalinfo_py),
 [symbol info](https://www.mql5.com/en/docs/python_metatrader5/mt5symbolinfo_py),
 [vendor package metadata](https://pypi.org/pypi/MetaTrader5/json).
+
+## Fresh observation during the authorized Stage18 continuation
+
+The earlier zero-tick result above remains unchanged. On 2026-10-07 Bangkok time,
+EXNESS_CONTINUE_CAPTURE_V001 completed 59.802941 seconds of read-only observation:
+49 polls, no reconnects, 2507 committed ticks (2278 backfill, 229 fresh live), no
+continuity halts, no simulated fills or broker orders. Own-process peak working
+set was 243789824 bytes and private memory 694235136 bytes; worker memory excluded.
+
+EXNESS_CONTINUE_REPLAY_V001 replayed 48 committed batches. Equality V001 found zero
+mismatches in four bars, four monitoring-feature rows and four NO_ACTION records.
+All bars were reconstructed backfill: three 5m and one 15m, including two partial
+startup bars explicitly invalid. No live completed bar appeared in this short
+segment. The single monitoring feature was ret_1; no frozen model was bound.
+Zero predictions means full model/portfolio/risk equality remains unavailable.
+This observation supports bounded feed processing only. No eligible alpha,
+feed-transfer evidence or strategy risk configuration was created.
+
+Actual capture/replay source identity:
+`caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28`.
+See the Stage18 continuation for artifact verification and execution blockers.
