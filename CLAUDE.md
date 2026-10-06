@@ -53,6 +53,18 @@ ticks plus 2278 backfill ticks. Four reconstructed backfill bars/monitoring feat
 rows and blocked actions matched replay; zero predictions, no full model equality.
 All 66 registered candidates remain BLOCKED. See Stage18 follow-up documentation.
 
+Further Stage18 continuation (user: "do the rest then") authorizes bounded
+read-only capture and saved-forecast diagnostics while the entry session is closed.
+Two fixed Stage13 ridge fits, final chronological fold F02 at 5m/15m, are used for
+software inference only. No refitting, strategy promotion, new trading policy,
+financial-limit change or Stage19. Native source/risk checkpoints remain compatible.
+The 300-second capture/replay completed; nine reconstructed 5m forecasts matched
+batch/chunk/restart/prefix calculations. The 15m fit lacked four valid consecutive
+bars and remains untested. All 50 legacy model/ensemble specs need unsupported live
+feature services; some require 7520 bars. Actual live model inference, transfer,
+portfolio/risk equality and predictive/economic value remain unvalidated. See
+`docs/stage18_forecast_diagnostics.md`; runtime artifacts/private configs stay local.
+
 **Stage #17 authorization (2026-10-04):** explicit Exness MT5 demo terminal
 identity, official read-only market/account metadata APIs, bounded capture,
 causal UTC streaming and local shadow diagnostics are authorized. The shadow

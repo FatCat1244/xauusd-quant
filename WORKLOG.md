@@ -3122,3 +3122,113 @@ verify persisted diagnostic-budget exhaustion before connection and explicit
 session-rejection reporting with forbidden check/send traps. Ruff and typing passed
 after those changes; no subsequent code changes. Verification V002 remains the
 final bounded-observation classification. No further broker activity.
+
+## 2026-10-07: saved forecast diagnostics while the execution session is closed
+
+User: "do the rest then". Initial working tree clean at 04ff687/main; verified
+origin FatCat1244/xauusd-quant. Read AGENTS/CLAUDE and actual Stage13-18 sources,
+saved fits and evidence. UTC clock was 17:58 on 6 October (Bangkok 7 October), outside
+the supplied 07:00-17:00 entry window. No precheck/smoke attempt, session expansion,
+financial-limit change or unattended wait. Original native ValueError remains
+unresolved, with zero verified broker lifecycle and zero eligible strategy alphas.
+
+Implemented scripts/diagnose_recorded_forecasts.py using existing Stage13 feature
+construction and FrozenPipeline.predict, without fitting, model binaries, policy
+intents, execution/accounting replacements or historical dataset reads. Selected
+both CAUSAL_RIDGE saved F02 fits by last chronological fold (5m/15m), not performance.
+Pinned fitted files, historical manifests, script/source identity and evidence-log
+hashes. Four completed consecutive valid closes supply Stage13 return_1/momentum_3/
+volatility_3. Loader validates numerical inputs, features, scales and training/inner
+cutoffs. Bars guard availability/order, invalidity/gaps reset warm-up. Checkpoints,
+chunk/restart and prefix checks stay bounded. Outputs are reconstructed forecasts
+computed after capture, not actual live predictions; no predictive/economic claim.
+
+V001 plan frozen before capture: two fixed fits, one <=300-second read-only capture,
+<=30000 ticks/256 forecast bars, 3600s backfill, no search/refit. Created ignored
+config/local/shadow_forecast.yaml from supplied identity plus these observation
+limits; original shadow/demo/risk configs and risk journal unchanged. Native source
+remained caece6af9b565f7b1450a01fecf2046b6c1929bc4e854b0a76077db82b5c2e28.
+
+Actual commands/results:
+
+- `.venv\Scripts\python.exe scripts/diagnose_recorded_forecasts.py prepare
+  --shadow-config config/local/shadow.yaml --local-capture-config config/local/shadow_forecast.yaml`:
+  froze EXNESS_FROZEN_FORECAST_DIAGNOSTIC_V001 before new observations.
+- `.venv\Scripts\python.exe -m xauusd_quant.cli shadow-capture --shadow-config
+  config/local/shadow_forecast.yaml --run-id EXNESS_FORECAST_CAPTURE_V001`:
+  299.835640 seconds; 8502 committed ticks (7968 backfill, 534 nonbackfill, 529 fresh).
+  264 polls/249 committed batches/no reconnects or continuity halts. 17 bars: 13 at 5m,
+  4 at 15m; all retained backfill flags, 2 invalid partial startup bars. One 5m bar
+  completed during observation with mixed history/new ticks. No broker orders or
+  simulated fills. Health notices: 15 empty/repeated batches, 3 non-fresh quotes.
+  Own-process peak working set 245764096 bytes/private 709836800; worker excluded.
+- `shadow-replay --shadow-config config/local/shadow_forecast.yaml --recorded
+  results/shadow/runs/EXNESS_FORECAST_CAPTURE_V001 --run-id EXNESS_FORECAST_REPLAY_V001`:
+  249 committed batches/8502 ticks/17 bars replayed. Captured records digest
+  84cb93bfff97f11db2343cd02bc8db083a1acf80f7257f1b8de9628422d90aae.
+- `shadow-compare --shadow-config config/local/shadow_forecast.yaml --recorded
+  results/shadow/runs/EXNESS_FORECAST_CAPTURE_V001 --replayed
+  results/shadow/runs/EXNESS_FORECAST_REPLAY_V001 --run-id EXNESS_FORECAST_EQUALITY_V001`:
+  all 17 bar/monitoring-feature/NO_ACTION rows matched; zero mismatches. Baseline
+  produced no model predictions; full pipeline/risk equality remains unavailable.
+- `scripts/diagnose_recorded_forecasts.py evaluate --plan
+  results/shadow/forecast_diagnostics/plans/EXNESS_FROZEN_FORECAST_DIAGNOSTIC_V001.json
+  --recorded results/shadow/runs/EXNESS_FORECAST_CAPTURE_V001 --replayed
+  results/shadow/runs/EXNESS_FORECAST_REPLAY_V001 --run-id EXNESS_FORECAST_DIAGNOSTIC_V001`:
+  nine reconstructed 5m forecasts matched canonical batch/incremental arithmetic,
+  max prediction difference 3.3881317890172014e-21 (rtol1e-12/atol1e-14). Exact
+  two-bar chunk/restart and prefix equality. 15m produced zero forecasts because
+  only three valid consecutive closes were available; four required.
+- The V001 software status could obscure absent 15m coverage. Preserved actual V001
+  script source beside the original report. Reporting amendment V002 explicitly
+  adds zero counts/per-timeframe UNTESTED and overall PARTIAL_FORECAST_DIAGNOSTICS.
+  Its CLI exited 1 while displaying a relative plan path after successfully freezing
+  the artifact; V002 evaluation itself passed. Preserved V002 script/report/plan.
+  Fixed relative-path display, then froze V003 with explicit post-V001 reporting
+  revision reason. No model, inputs, tolerance, acceptance or scientific gate changed.
+  No new capture. Final command:
+  `scripts/diagnose_recorded_forecasts.py amend-reporting --original-plan
+  results/shadow/forecast_diagnostics/plans/EXNESS_FROZEN_FORECAST_DIAGNOSTIC_V001.json
+  --plan-id EXNESS_FROZEN_FORECAST_DIAGNOSTIC_V003`, followed by the same evaluate
+  command with plan V003/run EXNESS_FORECAST_DIAGNOSTIC_V003: exit 0,
+  PARTIAL_FORECAST_DIAGNOSTICS, 5m 9 / 15m 0, same arithmetic;strategy_active false/orders 0.
+  Model manifests/capture hashes and reserved access-log hashes verified unchanged.
+
+Artifact feasibility audit: 37 ML specs / 13 ensembles, all 50 require unsupported live
+feature services; maximum required history 7520 bars. 37 manifests exist at standard
+model paths, but binaries were not opened and compatibility is not inferred from
+presence. Four directional-return specs use volatility-scaled outputs; 46 others
+are unsupported/unknown for this directional live binding. No inversion, feature
+substitution, strategy promotion or false feed-transfer evidence was invented.
+
+Tests/checks:
+
+- Initial 14 new tests: 9 passed, 4 fixture errors from sandbox-denied Windows pytest
+  temp access, 1 canary failure. Escalated rerun: 13 passed/1 canary failure. The
+  original canary was masked by FrozenPipeline's independent availability guard.
+  Changed it to test an unavailable first warm-up bar, so disabling the bar guard
+  alone causes the assertion test to fail; then 14 passed. Deployed code intact.
+- Added partial-coverage and end-to-end immutable-output tests plus a regression
+  for relative-path CLI display: 17 new tests passed in 2.78 seconds.
+- Final `.venv\Scripts\python.exe -m pytest tests/test_recorded_forecast_diagnostics.py
+  tests/test_strategy_chronology.py tests/test_shadow_streaming.py
+  tests/test_shadow_ingestion.py tests/test_demo_native_recovery.py -q -p no:cacheprovider`:
+  72 passed in 6.16 seconds. Offline synthetic adapters only. No full suite/research grid.
+- `.venv\Scripts\python.exe -m ruff check src tests scripts`: passed.
+- `.venv\Scripts\python.exe -m mypy src scripts/diagnose_recorded_forecasts.py`:
+  passed 262 files. Windows process inspection confirmed no owned worker/smoke process
+  remained before final edits/Git. No native source modules were edited.
+
+Changed public paths: CLAUDE.md,README.md,WORKLOG.md,docs/stage18_demo_execution.md,
+docs/stage18_forecast_diagnostics.md,scripts/diagnose_recorded_forecasts.py,
+tests/test_recorded_forecast_diagnostics.py. Private identity, capture/config,
+checkpoints, numerical reports and diagnostic source snapshots remain ignored/local.
+Commit/push of completed intended work remains authorized; no merge or deployment.
+
+Remaining blockers: permitted-session native diagnostic and verified demo entry/
+closure; 15m/full legacy live services/warm-up/unit/context compatibility; actual
+live model/ensemble and portfolio/risk equality; matched prior-only pipeline nulls,
+audited historical selection/execution assumptions, adequate independent evidence
+coverage and strategy-specific risk configuration. This study repairs software
+evidence about a small saved forecast path, not strategy eligibility. All 66 alphas
+remain BLOCKED. No Stage19 or continuous strategy operation.

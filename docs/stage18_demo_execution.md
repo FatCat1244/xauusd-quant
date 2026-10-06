@@ -596,3 +596,10 @@ Offline validation passed 288 targeted tests, full Ruff and typing for 264 files
 Two deliberately disabled guards were detected in isolated in-memory tests.
 Actual command records are in WORKLOG.md. No Stage19 work,
 strategy activation, real-money execution or deployment occurred.
+
+The subsequent user-authorized continuation performed a longer read-only capture
+and independent inference checks on two saved Stage13 fits. No broker precheck or
+submission was attempted outside the configured session. Nine reconstructed 5m
+forecasts matched calculations; 15m remained untested. The complete model ensemble,
+eligible portfolio and live trading path remain blocked. See
+[actual forecast diagnostic evidence](stage18_forecast_diagnostics.md).

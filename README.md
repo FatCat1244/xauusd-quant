@@ -30,6 +30,13 @@ checking or submission; the account was verified flat. The operator tool now
 requires a successful durable diagnostic before recovery smoke. See the
 [continuation record and next-session commands](docs/stage18_demo_execution.md#continuation-diagnostic-and-fresh-feed-observation).
 
+A further five-minute read-only study captured 8,502 ticks, including 529 fresh
+observations. Replay matched 17 bar/monitoring/action records. Nine recorded-feed
+forecasts from an existing Stage13 5m ridge fit matched batch and incremental
+arithmetic; the 15m fit remained untested because warm-up coverage was insufficient.
+These are reconstructed software diagnostics, with no trading intents or qualified
+strategy. See [forecast diagnostic scope and remaining blockers](docs/stage18_forecast_diagnostics.md).
+
 1. **Data foundation** - raw-file inspection and a byte-level source index,
    validation, conservative cleaning, partition-safe conversion to Parquet,
    independent dataset verification, tick-to-bar resampling, data-quality
